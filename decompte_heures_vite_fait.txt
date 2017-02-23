@@ -1,0 +1,259 @@
+﻿préparer requete pour ne pas tout recompter. 
+nombre heures:
+select sum(jourfin - jourdebut) from table plannings where jourdébut >= bornemin and jourfin <= bornemax
+saisie compacte mensuellle J1,J2,...JN <type poste> <mois> <année>
+-> date heure début date heure fin crc:nb heures (>0 <=12)
+
+
++ en python :
+  + essai cnx et requete
+	+  saisir un poste dans la db
+	   import sqlite3
+	   db_name = "planning.db"
+	   db_loc = sqlite3.connect(db_name)
+	   cursor = db_loc.cursor()
+       # cursor est un object auquel on passe les commandes SQL en vue d'être executées.
+	   
+	   # SQLite does not have a storage class set aside for storing dates and/or times. 
+	   #Instead, the built-in Date And Time Functions of SQLite are capable of storing dates and times 
+	   # as TEXT, REAL, or INTEGER values:
+	   # - TEXT as ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS").
+       # - REAL as Julian day numbers, the number of days since noon in Greenwich 
+	   # on November 24, 4714 B.C. according to the proleptic Gregorian calendar.
+       # - INTEGER as Unix Time, the number of seconds since 1970-01-01 00:00:00 UTC.
+	   # Applications can chose to store dates and times in any of these formats 
+	   # and freely convert between formats using the built-in date and time functions.
+	   # python should normaly hide this shit, but with c api, for exemple, maybe not.... 
+	   # do not consider knowledge of sqlitedb why python universal with any language. 
+	   cursor.execute("""
+       CREATE TABLE planning(
+          id INTEGER PRIMARY KEY,
+          debut_poste DATETIME,
+          fin_poste DATETIME);""")
+	   db_loc.commit()
+	   db_loc.close()
+	   db_loc  = sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+	   #Changing the connect method, the database now is returning a date object
+	   cursor = db_loc.cursor()
+	   import datetime
+	   #from datetime import date, datetime, timedelta
+	   duree_poste = 12
+	   debut_poste = datetime.datetime.now()
+	   fin_poste = debut_poste + datetime.timedelta(hours=duree_poste)
+	   + pannes 
+	     + utiliser une syntaxe utilisant le dernier rang ne marche pas si aucune entrée. (cursor.lastid -> 'None')
+		   + cursor.execute("""INSERT INTO planning(debut_poste, fin_poste) VALUES (?,?,?); """,((cursor.lastrowid + 1), debut_poste, fin_poste) )
+		 + solution : 
+		   + premier enregistrement : préciser les champs à remplir sans mentionner la pk 
+		    + cursor.execute("""INSERT INTO planning(debut_poste, fin_poste) VALUES (?,?); """,( debut_poste, fin_poste) )
+		   + enregistrements suivants : ne pas mentionner les champs , mais remplir ligne de man exhaustive (avec pk)
+		     + cursor.execute("""INSERT INTO planning VALUES (?,?,?); """,((cursor.lastrowid + 1), debut_poste, fin_poste) ))  
+	         + db_loc.commit()
+		+ vérifier le type des enregistrements.
+		  +  récupérer un enregistrement
+		  c.execute('''SELECT id, debut_poste, fin_poste as "enreg [id], [debut_poste], [fin_poste]" FROM planning''')
+		  premier_poste = cursor.fetchone() 
+		  debut_premier_poste = premier_poste[1]
+		  print(debut_premier_poste)
+		  +  récupérer TOUS les enregistrements
+		  c.execute('''SELECT id, debut_poste, fin_poste as "enreg [id], [debut_poste], [fin_poste]" FROM planning''')
+		  postes = cursor.fetchall() 
+		  for poste in postes: 
+		     id, debut, fin = poste
+		     print("le poste {id} débute à {debut} se termine a {fin}").format(id=id, poste=poste, fin=fin))
+			 print('The date is {0} and the datatype is {1}'.format(row[1], type(row[1])))
+		  print(debut_premier_poste)
+		  + pannes: 
+		    + ca renvoie un type unicode au lieu d un type datetime.
+		  + solution :
+		    + cursor.execute(''' SELECT debut_poste as 'ts [timestamp]' FROM planning''')
+			+ for row in cursor: ... pour étape par étape (itérateur)
+	+  vérifier que ca fait 12h. 
+	   + bah division modulaire et timedelta:
+	     for entree in cursor:
+	       difference = entree[1] - entree[0]
+	       heures, __osef__ = divmod(difference.total_seconds(), 3600)
+	       if heures == 12:
+		     print "ok"
+	       else:
+		     print ("ko", heures)
+	+  saisir 2 postes
+	   + cursor.execute("""INSERT INTO planning(debut_poste, fin_poste) VALUES (?,?); """,( debut_poste, fin_poste) )
+	   + cursor.execute("""INSERT INTO planning VALUES (?,?,?); """,((cursor.lastrowid + 1), debut_poste, fin_poste) )
+	   + remarque : sql injection:
+	     +  cette forme permettrait d éviter les injections sql. pq?  comment? ....
+	+  vérifier que la somme fait 24h
+	  total = sum(divmod((entree[1] - entree[0]).total_seconds(), 3600)[0] for entree in cursor)
+	  	       if total == 24:
+		     print "ok"
+	       else:
+		     print ("ko", heures)
+	+  saisir un poste hors des bornes et définir une bornemax
+	
+	 + saisie d une heure en python et envoi dans la base sql
+	   + 
+	+  vérifier que seules 24h sont prises en comptes
+	+  industrialiser la saisie
+	   + saisir les plannings en parametres de fonction
+         +  exploser la notation compacte en n notations
+         +  transformer ca en dico de datetimes python
+         +  saisir le planning dans la db		 
+	   +  saisir les plannings dans un fichier texte
+	     + pannes
+               + fichier pas trouvé
+                + sol :  afficher les options de dossiersous win: "fichier.txt.txt"-> "fichier.txt"
+	       + : une ligne fichier texte rajoute un \n. 
+                + solution : nécessité nettoyer les entrées provenant fichier par un strip.
+              
+	
+  + restera à traiter les cas limites:
+    +  les heures de l année précédente qui débordent sur cette année ou période (= indiquer de saisir + de pl)
+	+  les heures de cette période qui doivent ë exclues (requete)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	import sqlite3
+db_name = 'planning.db'
+fichier_plannings = 'plannings.txt'
+postes = {'P1' : {'heure_debut' : 6, 'duree': 12 },
+          'P2' : {'heure_debut' : 18, 'duree': 12}}
+
+def isSQLite3(filename):
+    from os.path import isfile, getsize
+
+    if not isfile(filename):
+        print "pas un fichier"
+        return False
+    if getsize(filename) < 100: # SQLite database file header is 100 bytes
+        print "taille <100"
+        return False
+
+    with open(filename, 'rb') as fd:
+        header = fd.read(100)
+        return header[:16] == 'SQLite format 3\x00'
+
+def explode_line(ligne):
+    """je veux un outil qui prend en entree
+une ligne de type '1,2,3,5,8 4 2016 P1'
+et qui itère en sortie
+sur des dictionnaires du type
+'{'jour' : 1, 'mois' : 4, 'annee': 2016, poste: 'P1'}
+"""
+    jours, mois, annee, poste = tableau_dates_mois_annee
+    tableau_jours = jours.split('.')
+    
+    
+    
+
+def insertdate(chaine_mois_annee_d_un_type_de_poste_du_mois,cur,debug=True,cnx=None):
+        """ pour que ca reste configurable """
+    
+    import datetime
+    import sqlite3
+    """chaine_mois_annee_d_un_type_de_poste_du_mois : '1,2,3,5,8 4 2016 P1' """
+    tableau_dates_mois_annee = chaine_dates_mois_annee_d_un_type_de_poste_du_mois.split(' ')
+    """['1,2,3,5,8', '4', '2016', 'P1'] """
+    jours, mois, annee, poste = tableau_dates_mois_annee
+    annee= int(annee)
+    mois = int(mois)
+    tableau_jours = jours.split(',')
+
+    for jour in tableau_jours:
+        jour = int(jour)
+        date_debut = datetime.date(annee, mois, jour)
+        heure_debut = datetime.time(postes[poste]['heure_debut'])
+        duree = postes[poste]['duree']
+        poste_debut = datetime.datetime.combine(date_debut, heure_debut)
+        poste_fin = poste_debut + datetime.timedelta(hours=duree)
+        if debug is not True:
+            cur.execute("""INSERT INTO planning(debut_poste, fin_poste) VALUES (?,?); """,( poste_debut, poste_fin) )
+            cnx.commit()
+        else:
+            print("""INSERT INTO planning({d}, {f}) VALUES (?,?); """).format(d=poste_debut, f=poste_fin)
+
+
+
+
+def creation_db(cur,cnx):
+    if cur is not None and cnx is not None:
+       
+        cur.execute("""CREATE TABLE planning(
+          id INTEGER PRIMARY KEY,
+          debut_poste DATETIME,
+          fin_poste DATETIME);""")
+        cnx.commit()
+
+
+def read_db(cur, cnx):
+    print("entree dans readdb")
+    nb = cur.execute("""SELECT Count(*) FROM planning; """)
+    print("il y a " + str(nb.fetchone()[0]) + " enregistrements")
+    if cur is not None and cnx is not None:
+        cur.execute("""
+SELECT * FROM planning;
+""")
+        for champ in cur:
+            print champ
+            print "-" * 5
+    else:
+        print("cur is Noe or cnx is None")
+       
+
+
+
+if isSQLite3(db_name):
+    print(db_name + " existe")
+    db_loc  = sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    print db_loc
+    cursor = db_loc.cursor()
+    print cursor
+    try:
+        read_db(cursor, db_loc)
+    except sqlite3.Error as e:
+        print e
+else:
+    print(db_name +  "n existe pas")
+    db_loc  = sqlite3.connect(db_name, detect_types=sqlite3.PARSE_DECLTYPES|sqlite3.PARSE_COLNAMES)
+    print db_loc
+    cursor = db_loc.cursor()
+    print cursor
+    creation_db(cursor, db_loc)
+    cursor.execute("""SELECT name FROM sqlite_master WHERE type='table' AND name='planning';""")
+    print(cursor.fetchone()[0])
+    insertdate("1,2,3,4,5 4 2016 P1", cur=cursor, debug=False, cnx=db_loc)
+    insertdate("2 1 2015 P2", cur=cursor, debug=False, cnx=db_loc)
+    read_db(cursor, db_loc)
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	
