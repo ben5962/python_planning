@@ -6,4 +6,5 @@
     +  git add <lefichier>
   + git commit -m "nom modif"
 + ajouter depot distant:  git add remote prout https://github.com/user/projet.git master
-  + pousser les modifications : git push remote prout
+  + lister les distants : git remotes
+  + pousser les modifications : git push prout master
