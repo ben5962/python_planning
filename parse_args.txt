@@ -1,4 +1,19 @@
 https://docs.python.org/3/library/argparse.html#formatter-class
++ le probleme:
+  + programme 
+     + pt entree du prog: boucle principale
+       + espace de noms = module_de_parse_exterieur()
+       + si option 1 en cli lancer ss prog 1 avec param x
+       + si option 2 .....
+         + le pb du lien entre cli et peuplement d'un dico avec valeur des options est adressé par argparse.	
+     + sous programmes
+       + sous prog 1:
+        + stockage dans une base de donnée
+       + sous prog 2:
+        + interrogation de la base
+        + calcul des heures
+        + affichage du resultat
+       
 + argparse
   + objet ArgumentParser
     + constructeur:

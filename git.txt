@@ -1,0 +1,9 @@
++ récuperer depot distant
+   + git clone git://github.com/user/projet.git
++ faire modifs....
++ valider modifs
+  + git status
+    +  git add <lefichier>
+  + git commit -m "nom modif"
++ ajouter depot distant:  git add remote prout https://github.com/user/projet.git master
+  + pousser les modifications : git push remote prout
