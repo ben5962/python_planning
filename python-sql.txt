@@ -9,7 +9,10 @@
    + connexion  (via connector  : parametre1, parametre2 .... parametren -> objet connection possédant: 
       + creer un objet recevant les demandes d'édition: cursor() -> objet curseur
         + contexte d'une opération de lecture (de lecture seulement?)
+          + attributs: 
+            + .description -> Liste : contient des seq avec noms des colonnes et leurs types et d autres trucs optionnels.
         + deux curseurs issus d une meme cnx ne sont pas isolés (chg par 1 visibles -avt commit?- par l autre)
+        
       + valider les éditions en attente: commit() -> rien MAIS COMMITE LES EDITIONS
          + pannes:
           + si transaction existe pas sur cette db : commit() -> rien MAIS FAIT RIEN
