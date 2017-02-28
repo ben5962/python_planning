@@ -1,14 +1,37 @@
-https://docs.python.org/3/library/argparse.html#formatter-class
-+ le probleme:
-  + programme 
-     + pt entree du prog: boucle principale
-       + espace de noms = module_de_parse_exterieur()
+Phttps://docs.python.org/3/library/argparse.html#formatter-class
++ INTRO  
+ 
+        + prg:= ssprg + modutils + glu
+         + modutils = i/o 
+         + ssprg.....
+         + glu = imputils+prm cll spg 
+           + args cli-> dict
+             + p/ argparse 
+           + d_args = my_parseargs ()
+           + flux exe = f(d_args)
+       
+       
++ DVP 
+      
+      + plg --ex-entree
+         + ss prg mettt ex-entree a true 
+      + plg --ajouter-entree j m a p
+      + plg --ajouter-fichier <f> 
+         + ss prog mettant f ds aj-f 
+         + ss prog docu ce prm 
+         + ss prog u db 1 entree 
+         + ss prog itere l fich
+         + ss prog verif integr entree
+         + ss prog loggue result impt 
+         
+
+
        + si option 1 en cli lancer ss prog 1 avec param x
        + si option 2 .....
-         + le pb du lien entre cli et peuplement d'un dico avec valeur des options est adress� par argparse.	
+         + le pb du lien entre cli et peuplement d'un dico avec valeur des options est adress� par argparse.	
      + sous programmes
        + sous prog 1:
-        + stockage dans une base de donn�e
+        + stockage dans une base de donn�e
        + sous prog 2:
         + interrogation de la base
         + calcul des heures
@@ -23,18 +46,18 @@ https://docs.python.org/3/library/argparse.html#formatter-class
       conflict_handler='error', add_help=True, allow_abbrev=True
       + le tester avec un parents = [ liste d'args ] ou juste [ liste d args ]
     + methodes:
-      + definir un modele en ajoutant des arguments et une mani�re de les g�rer
+      + definir un modele en ajoutant des arguments et une mani�re de les g�rer
         + l essentiel:
-          + un argument obligatoire � valeur (bar)
-          + un ou des arguments optionnels (-f ou --f ) � valeur ou pas 
+          + un argument obligatoire � valeur (bar)
+          + un ou des arguments optionnels (-f ou --f ) � valeur ou pas 
         + add_argument 
       + renvoyer un espace de nom
        + parse_args : [c1] x [c2] x [c3] x [l] x  -> Obj
                       argument            espace de noms 
          + name or flags...[, action][, nargs][, const][, default][, type][, choices][, required][, help][, metavar][, dest])
 + utiliser un espace de noms:
-  + "espace de noms" := objet qcq ss cl de obj poss�dant juste des attributs de valeur le nom de la valeur
-     + premiere possiblit� : sans transfo:
+  + "espace de noms" := objet qcq ss cl de obj poss�dant juste des attributs de valeur le nom de la valeur
+     + premiere possiblit� : sans transfo:
        + class c:
           pass
          c = c()
@@ -42,8 +65,6 @@ https://docs.python.org/3/library/argparse.html#formatter-class
          parser.add_argument(--foo)
          parser.parse_args(args=['--foo','prout'], namespace=c)
          c.foo ->  'prout'
-       + 2eme possibilit� avec transfo: 
+       + 2eme possibilit� avec transfo: 
          args = parser.parse_args(args=['--foo','prout'])
          plop = vars(args)  -> {'foo': 'prout'}
-         
-

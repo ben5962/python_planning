@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 + pep249 : encourage similarity between py module to acces  database
  + v2
    + fournit objets globaux à tester
@@ -41,3 +42,45 @@
 + sql-alchemy
  + orm : cache le sql
    + req dynamiques de rech avancées
+=======
++ pep249 : encourage similarity between py module to acces  database
+ + v2
+   + fournit objets globaux ï¿½ tester
+     + apilevel : doit valoir "2.0" sinon tt ce qu est en dessous est faux
+     + threadsafety mouais
+     +  paramstyle: (qmark (?), numeric (:=1), named (name:=name), format (name=%s) pyformat (name=%(name)s)
+       + j attends qmark de pysqlite3
+ + ï¿½tapes :
+   + connexion  (via connector  : parametre1, parametre2 .... parametren -> objet connection possï¿½dant: 
+      + creer un objet recevant les demandes d'ï¿½dition: cursor() -> objet curseur
+        + contexte d'une opï¿½ration de lecture (de lecture seulement?)
+        + deux curseurs issus d une meme cnx ne sont pas isolï¿½s (chg par 1 visibles -avt commit?- par l autre)
+      + valider les ï¿½ditions en attente: commit() -> rien MAIS COMMITE LES EDITIONS
+         + pannes:
+          + si transaction existe pas sur cette db : commit() -> rien MAIS FAIT RIEN
+          + si autocommit,  elle est ï¿½ off par dï¿½faut. doit filer mï¿½thode pour la mettre sur "on"
+      + annuler les ï¿½ditions en attente : rollback() -> rien mais annule les ï¿½ditions en attente.
+          + pannes: deconnexion sans commit() equiv rollback()
+      + fermeture de cnx : close()
+     
+
++ plain sql
+  + ï¿½crire la req ï¿½ la main
+  + probleme : injection sql (mouais)
+  + transtypage python sql : OUI pour sqlite
+  + pas indï¿½pendant de la db. la rï¿½ï¿½crire si on ch de db bof. 
+  
+
++ python-sql
+ + pep249 python databae api
+  + toute bonne librairie de connexion doit appliquer l'ï¿½chappement sur les paramï¿½tres
+ + !orm 
+   + sql gï¿½nï¿½rique + flavors
+ + y? 
+   + req dynamiques formulaire de rech avancï¿½e dynamique
+   + postgres en prod vs sqlite en tet
+ + w? gï¿½nï¿½re la ch sql
++ sql-alchemy
+ + orm : cache le sql
+   + req dynamiques de rech avancï¿½es
+>>>>>>> origin/master
