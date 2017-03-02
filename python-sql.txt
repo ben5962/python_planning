@@ -24,6 +24,11 @@
   + probleme : injection sql (mouais)
   + transtypage python sql : OUI pour sqlite
   + pas indépendant de la db. la réécrire si on ch de db bof. 
+     + python-sqlite3
+       + pb date et datetype existent pas.
+         +  solution python 1 : passer en arg de cnx : detect_types=sqlite3.PARSE_DECLTYPES
+           +  SELECT ReportDate FROM PatientReports WHERE PatientID = ? ORDER BY ReportDate DESC LIMIT 1; -> date
+          + pb :SELECT MIN(ReportDate) FROM PatientReports WHERE PatientID = ?; -> chaine.
   
 
 + python-sql
@@ -38,3 +43,5 @@
 + sql-alchemy
  + orm : cache le sql
    + req dynamiques de rech avancées
+
+
