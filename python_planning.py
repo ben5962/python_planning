@@ -123,30 +123,30 @@ def connecter(db_name):
 
 
 
-if isSQLite3(db_name):
-    print(db_name + " existe")
-    db_loc = connecter(db_name)
-    print db_loc
-    cursor = db_loc.cursor()
-    print cursor
-    try:
-        read_db(cursor, db_loc)
-    except sqlite3.Error as e:
-        print e
-else:
-    print(db_name +  "n existe pas")
-    db_loc = connecter(db_name)
-    print db_loc
-    cursor = db_loc.cursor()
-    print cursor
-    creation_db(cursor, db_loc)
-    cursor.execute("""SELECT name FROM sqlite_master WHERE type='table' AND name='planning';""")
-    print(cursor.fetchone()[0])
-    #insertdate("1,2,3,4,5 4 2016 P1", cur=cursor, debug=False, cnx=db_loc)
-    #insertdate("2 1 2015 P2", cur=cursor, debug=False, cnx=db_loc)
-    logique_remplir_base('monplanning.txt')
-    read_db(cursor, db_loc)
-##    
+# if isSQLite3(db_name):
+    # print(db_name + " existe")
+    # db_loc = connecter(db_name)
+    # print db_loc
+    # cursor = db_loc.cursor()
+    # print cursor
+    # try:
+        # read_db(cursor, db_loc)
+    # except sqlite3.Error as e:
+        # print e
+# else:
+    # print(db_name +  "n existe pas")
+    # db_loc = connecter(db_name)
+    # print db_loc
+    # cursor = db_loc.cursor()
+    # print cursor
+    # creation_db(cursor, db_loc)
+    # cursor.execute("""SELECT name FROM sqlite_master WHERE type='table' AND name='planning';""")
+    # print(cursor.fetchone()[0])
+    # #insertdate("1,2,3,4,5 4 2016 P1", cur=cursor, debug=False, cnx=db_loc)
+    # #insertdate("2 1 2015 P2", cur=cursor, debug=False, cnx=db_loc)
+    # logique_remplir_base('monplanning.txt')
+    # read_db(cursor, db_loc)
+# ##    
     
 
 

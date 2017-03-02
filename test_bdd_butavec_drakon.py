@@ -13,34 +13,46 @@ def nline2_1line(chaine):
 class testbdd(unittest.TestCase):
     """nettoyage table vs space ok space partout"""
     cnx = sqlite3.connect(':memory:')
+    
 
 
-
+    @classmethod
     def setUpClass(cls):
+        
         #item 110
         """AVANT TOUS LES TESTS 
         env test:
-        une bdd en mémoire"""
+        une bdd en mÃ©moire"""
         #item 54
         #cnx = sqlite3.connect(':memory:')
         """ nettoyage tab vs space ok. spaces ok"""
-        with open('schema.sql','r') as f:
-            req = f.read()
-            req = nline2_1line(req)
-            """il faut utiliser l objet de classe partage cnx pour
-            pouvoir partager et modifier son etat"""
-            cur = self.__class__.cnx.cursor()
-            cur.execute(req)
+        """ les prerequis
+        - schema.sql doit exister dans le rep courant
+        - cnx doit etre non nul
+        """
+        fichier = 'schema.sql'
+        import os.path
+        try:
+            
+            with open(fichier,'r') as f:
+                req = f.read()
+                req = nline2_1line(req)
+                """il faut utiliser l objet de classe partage cnx pour
+                pouvoir partager et modifier son etat"""
+                cur = cls.cnx.cursor()
+                cur.execute(req)
+        except IOError, e:
+            print "fichier pas trouve: " + e 
 
-
-    def tearDown(self):
+    @classmethod
+    def tearDownClass(cls):
         #item 111
         """supprimer les bases ouvertes en memoire...
         en refermant la connexion"""
         """ il faut utiliser un objet partage de classe cnx pour
         pouvoir le modifier sur site"""
         
-        self.__class__.cnx.close()
+        cls.cnx.close()
 
 
     def test_schema(self):
