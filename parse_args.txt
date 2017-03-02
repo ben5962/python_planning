@@ -1,0 +1,93 @@
+﻿Phttps://docs.python.org/3/library/argparse.html#formatter-class
++ INTRO  
+ 
+        + prg:= ssprg + modutils + glu
+         + modutils = i/o 
+         + ssprg.....
+         + glu = imputils+prm cll spg 
+           + args cli-> dict
+             + p/ argparse 
+           + d_args = my_parseargs ()
+           + flux exe = f(d_args)
+       
+       
++ DVP 
+      
+      + xpld --jours j1 j2 j3 j4 --mois m --année aaaa --poste P
+          + renvoie des lignes de J1 mois annee poste
+          + en utilisant des coreutils unix 
+            + paste  fusionne l1 .txt1 avec l1 .txt2, ....
+            + cut  : coupe des champs
+            + tr transforme des car en d'autres. permet de convertir ligne en col.
+            + du coup pour chaque ligne:
+              # je separe les lignes en jours et reste
+              JOURS = echo $LIGNE -d ' ' -s 1
+              RESTE = echo $ligne -d ' ' -s 2-
+              # jours va dans un fichier temporaire le resultat de reste ira dans un autre
+              TMP = $(mktemp) 
+              TMP2 = $(mktemp)
+              tr ' ' '\n' >> $TMP
+              #il va falloir repeter autant de fois que DE LIGNES CREES par JOURs du RESTE
+              NBLINES=wc -l $TMP 
+              #creer la sequence de decompte de la boucle
+              for i in seq 1 $NBLINES;
+              do
+              ECHO $RESTE >> $TMP2
+              done
+              # fusionner les fichiers colonnes
+              PASTE $tmp $tmp2 >> $FINAL #ajouter final ds les vars debut, le suppr si existe debut et nett tmp et tmp2 chq ite
+      + plg --ex-entree
+         + ss prg mettt ex-entree a true 
+      + plg --ajouter-entree j m a p
+      + plg --ajouter-fichier <f> 
+         + ss prog mettant f ds aj-f 
+         + ss prog docu ce prm 
+         + ss prog u db 1 entree 
+         + ss prog itere l fich
+         + ss prog verif integr entree
+         + ss prog loggue result impt 
+         
+
+
+       + si option 1 en cli lancer ss prog 1 avec param x
+       + si option 2 .....
+         + le pb du lien entre cli et peuplement d'un dico avec valeur des options est adress� par argparse.	
+     + sous programmes
+       + sous prog 1:
+        + stockage dans une base de donn�e
+       + sous prog 2:
+        + interrogation de la base
+        + calcul des heures
+        + affichage du resultat
+       
++ argparse
+  + objet ArgumentParser
+    + constructeur:
+      prog=None, usage=None, description=None, epilog=None, 
+      parents=[], formatter_class=argparse.HelpFormatter, 
+      prefix_chars='-', fromfile_prefix_chars=None, argument_default=None, 
+      conflict_handler='error', add_help=True, allow_abbrev=True
+      + le tester avec un parents = [ liste d'args ] ou juste [ liste d args ]
+    + methodes:
+      + definir un modele en ajoutant des arguments et une mani�re de les g�rer
+        + l essentiel:
+          + un argument obligatoire � valeur (bar)
+          + un ou des arguments optionnels (-f ou --f ) � valeur ou pas 
+        + add_argument 
+      + renvoyer un espace de nom
+       + parse_args : [c1] x [c2] x [c3] x [l] x  -> Obj
+                      argument            espace de noms 
+         + name or flags...[, action][, nargs][, const][, default][, type][, choices][, required][, help][, metavar][, dest])
++ utiliser un espace de noms:
+  + "espace de noms" := objet qcq ss cl de obj poss�dant juste des attributs de valeur le nom de la valeur
+     + premiere possiblit� : sans transfo:
+       + class c:
+          pass
+         c = c()
+         parser = argparse.ArgumentParser()
+         parser.add_argument(--foo)
+         parser.parse_args(args=['--foo','prout'], namespace=c)
+         c.foo ->  'prout'
+       + 2eme possibilit� avec transfo: 
+         args = parser.parse_args(args=['--foo','prout'])
+         plop = vars(args)  -> {'foo': 'prout'}
