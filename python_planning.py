@@ -12,10 +12,10 @@ def isSQLite3(filename):
     from os.path import isfile, getsize
 
     if not isfile(filename):
-        print "pas un fichier"
+        print("pas un fichier")
         return False
     if getsize(filename) < 100: # SQLite database file header is 100 bytes
-        print "taille <100"
+        print("taille <100")
         return False
 
     with open(filename, 'rb') as fd:
@@ -33,7 +33,7 @@ def _explodeline(ligne):
     jours, mois, annee, poste = ligne.split(' ')
     tableau_jours = jours.split(',')
     for jour in tableau_jours:
-        print {'jour': int(jour), 'mois': int(mois), 'annee': int(annee), 'poste' : poste}
+        print ({'jour': int(jour), 'mois': int(mois), 'annee': int(annee), 'poste' : poste})
         yield {'jour': int(jour), 'mois': int(mois), 'annee': int(annee), 'poste' : poste}
 
 def _datetimedebutposte(dic_poste):
@@ -106,8 +106,8 @@ def read_db(cur, cnx):
 SELECT * FROM planning;
 """)
         for champ in cur:
-            print champ
-            print "-" * 5
+            print(champ)
+            print("-" * 5)
     else:
         print("cur is Noe or cnx is None")
        
