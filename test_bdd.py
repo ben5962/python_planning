@@ -131,11 +131,21 @@ class testbdd(unittest.TestCase):
         #item 130
         import xpld
         objet_xpld = xpld.xpld()
-        #item 131
+        #item 164
         ligne = "1,2,3 1 2016 P1"
         ligne_no_poste = "1,2 1 2016"
+        ligne_cp = "1,2,3 1 2016 CP"
         # verif du domaine du type ligne : type jours + type mois + type annee + type poste:
         self.assertEqual(objet_xpld.validate_poste("P1"),True)
+        self.assertEqual(objet_xpld.validate_poste("P2"),True)
+        self.assertEqual(objet_xpld.validate_poste("P3"),True)
+        self.assertEqual(objet_xpld.validate_poste("P4"),True)
+        self.assertEqual(objet_xpld.validate_poste("P5"),True)
+        self.assertEqual(objet_xpld.validate_poste("P6"),True)
+        self.assertEqual(objet_xpld.validate_poste("P7"),True)
+        self.assertEqual(objet_xpld.validate_poste("R1"),True)
+        self.assertEqual(objet_xpld.validate_poste("RCP"),True)
+        self.assertEqual(objet_xpld.validate_poste("AM"),True)
         self.assertEqual(objet_xpld.validate_poste("XK"),False)
         self.assertEqual(objet_xpld.validate_month("1"),True)
         self.assertEqual(objet_xpld.validate_month("13"),False)
@@ -146,7 +156,9 @@ class testbdd(unittest.TestCase):
         self.assertEqual(objet_xpld.validate_year("1998"),False)
         self.assertEqual(objet_xpld.validate_year("2022"),False)
         self.assertEqual(objet_xpld.valider_ligne(ligne), True)
+        self.assertEqual(objet_xpld.valider_ligne(ligne_cp), True)
         self.assertEqual(objet_xpld.valider_ligne(ligne_no_poste), False)
+        #item 165
         
         # verif des differentes extractions jours, mois, annee, poste
         self.assertEqual(objet_xpld.split_virg("1,2,3"),[1,2,3])
@@ -155,6 +167,9 @@ class testbdd(unittest.TestCase):
         self.assertEqual(objet_xpld.get_month(ligne),1)
         self.assertEqual(objet_xpld.get_year(ligne),2016)
         self.assertEqual(objet_xpld.get_poste(ligne),"P1")
+        #item 131
+        
+        
         
         # verif utilitaire reel version en une fois
         self.assertEqual(objet_xpld.xplode(ligne),[{'day': 1, 'month':1, 'year':2016, 'poste' : 'P1'},
@@ -163,11 +178,11 @@ class testbdd(unittest.TestCase):
         ite = objet_xpld.xplode_ite(ligne)
         for i in [1,2,3]:
             self.assertEqual(next(ite), {'day':i, 'month' : 1, 'year': 2016, 'poste': 'P1'})
-        
+        #item 166
         #main : argparse et verifs sur boucle principale
         #verif exception si ouverture de fichier pas present
         def file_noo():
-            objet_xpld.file_operations(objet_xpld.display_results,"fichierexistepas.txt")
+            objet_xpld.file_operations(objet_xpld.display_results,"fichierexistepas.txt","")
         self.assertRaises(IOError,file_noo)
         #verif fonctionnement ok de objet_xpld.display_results
         # en ligne de commande, pas le choix
@@ -177,13 +192,33 @@ class testbdd(unittest.TestCase):
         import argparse
         parsed = argparse.Namespace()
         # pas de gui pas de fichier mais une valeur pour jour mois annee et poste
-        parsed.gui = False
+        #parsed.gui = False
         parsed.file = False
         parsed.jours = "1,2,3"
         parsed.mois = "1"
         parsed.annee = "2016"
         parsed.poste = "P1"
+        parsed.gui   = False
         objet_xpld.main("",parsed)
+        #test de module_parse_xpld
+        import module_parse_xpld
+        parse_jours = parsed
+        parse_module_jours = module_parse_xpld.parse(['ligne','1,2,3','1','2016','P1'])
+        self.assertEqual(parse_jours, parse_module_jours)
+        
+        # le fichier 
+        # comme param de argparse
+        parsed2 = argparse.Namespace()
+        parsed2.gui = False
+        parsed2.file = "2016.bak"
+        #parsed2.jours = None
+        #parsed2.mois = None
+        #parsed2.annee = None
+        #parsed2.poste = None
+        parse_jours2 = parsed2
+        #parse_module_jours2 = module_parse_xpld.parse(['-f',"2016.bak"])
+        parse_module_jours2 = module_parse_xpld.parse(['fileparse',"-f","2016.bak"])
+        self.assertEqual(parse_jours2, parse_module_jours2)
 
     setUpClass = classmethod(setUpClass)
     tearDownClass = classmethod(tearDownClass)

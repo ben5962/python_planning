@@ -1,1 +1,4 @@
 # le fichier généré foire qd les caractères sont accentués. ai modifié le générateur en tcl.
+# argparse : -gui OU -f fichier OU <jour> <mois> <annee> <poste>. actu [-f fichier] [--gui] j m a p resolu avec des subparsers
+# ecriture de fichier sans le passage à la ligne. ajouté '\n'.join(truc à écrire) nan ajoute write('\n') a chq ite
+# + embettant : boucle n ecrit que la derniere ligne lue du fichier. pb sur la boucle de lecture. résolu en mettant le fichier en ajout. le contexte le fermait à chaque ligne
