@@ -8,11 +8,21 @@ def parse(largs):
     objet_parser = argparse.ArgumentParser()
     objet_subparsers = objet_parser.add_subparsers()
     #item 47
-    #gui DOIT exister dans le namespace, donc etre initialisee
-    #  init à une valeur d attente vaut faux ou none
-    objet_parser.add_argument('--gui',  default=False, dest="gui")
+    # les attributs d objet gui  et file DOIVENT exister dans le namespace, 
+    # afin que les 'if parsed.gui et if parsed.file fonctionnent sans envoyer
+    # d exception meme si valeur fausse.
+    #donc etre initialisee
+    # sinon exception AttributeError "namespace has no attribute..."
+    # comme pour n importe quel objet
+    # + solution : donc on pourrait le creer et passer une valeur par defaut
+    #   + pb: on se traine un argument positionnel non désiré dans le parser main
+    #     + solution : éditer directement le Namespace. (essais, pas lecture source)
+    #                  appeler parseargs avec le namespace en param. 
+    args = argparse.Namespace()
+    #  hérite de objet. ajout de params par bete notation préfixée
+    args.gui = False
+    args.file = None
     # fichier doit
-    objet_parser.add_argument('--file',  default=False, dest="file" )
     #item 24
     objet_parser_ligne = objet_subparsers.add_parser('ligne')
     objet_parser_ligne.add_argument('jours')
@@ -21,12 +31,21 @@ def parse(largs):
     objet_parser_ligne.add_argument('poste')
     #item 25
     objet_parser_gui = objet_subparsers.add_parser('gui')
-    objet_parser_gui.add_argument("-g", "--gui", action="store_true", help="mode graphique", dest="gui", default=True)
+    # sous commande obligatoire, mais sans option
+    # objet_parser_gui.add_argument("-g", "--gui", action="store_true", help="mode graphique", dest="gui", default=True)
+    # mais fait qd meme un truc.
+    args.gui = True
     #item 35
     objet_parser_file = objet_subparsers.add_parser('fileparse')
-    objet_parser_file.add_argument("-f", "--file", action="store", help="mode fichier", dest="file")
+    objet_parser_file.add_argument("-r", "--fileread", action="store", help="from file", dest="filer")
+    #ok
+    # todo ajouter un deuxieme argument "fw"
+    objet_parser_file.add_argument("-w", "--filewrite", action="store", help="to file", dest="filew")
+    # et signaler qu on a bien un mode fichier pour rentrer ds la bonne branche
+    # lors du parse
+    args.file = True
     #item 23
-    return objet_parser.parse_args(largs)
+    return objet_parser.parse_args(args=largs,namespace=args)
 
     pass
 
