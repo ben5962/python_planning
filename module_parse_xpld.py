@@ -21,7 +21,7 @@ def parse(largs):
     args = argparse.Namespace()
     #  hérite de objet. ajout de params par bete notation préfixée
     args.gui = False
-    args.file = None
+    args.file = False
     # fichier doit
     #item 24
     objet_parser_ligne = objet_subparsers.add_parser('ligne')
@@ -32,18 +32,25 @@ def parse(largs):
     #item 25
     objet_parser_gui = objet_subparsers.add_parser('gui')
     # sous commande obligatoire, mais sans option
-    # objet_parser_gui.add_argument("-g", "--gui", action="store_true", help="mode graphique", dest="gui", default=True)
+    objet_parser_gui.add_argument("-g", "--gui", action="store_true", help="mode graphique", dest="gui", default=True)
     # mais fait qd meme un truc.
-    args.gui = True
+    
+    # bug : marche pas : met true tt le temps:
+    # args.gui = True
+    # je veux true que si gui tapé
     #item 35
-    objet_parser_file = objet_subparsers.add_parser('fileparse')
-    objet_parser_file.add_argument("-r", "--fileread", action="store", help="from file", dest="filer")
+    objet_parser_file = objet_subparsers.add_parser('file')
+    
+    # meme truc que pour gui le ghost parametre pour exister dans bcle main:
+    objet_parser_file.add_argument("-f", "--file", action="store_true", help="param ghost avec fichier", dest="file", default=True)
+    
+    objet_parser_file.add_argument("-r", "--fileread", action="store", help="from file", dest="filer", required=True)
     #ok
     # todo ajouter un deuxieme argument "fw"
-    objet_parser_file.add_argument("-w", "--filewrite", action="store", help="to file", dest="filew")
+    objet_parser_file.add_argument("-w", "--filewrite", action="store", help="to file", dest="filew", required=True)
     # et signaler qu on a bien un mode fichier pour rentrer ds la bonne branche
     # lors du parse
-    args.file = True
+    # args.file = True
     #item 23
     return objet_parser.parse_args(args=largs,namespace=args)
 
