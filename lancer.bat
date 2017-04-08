@@ -1,2 +1,2 @@
-cmd
-rem py -3 pytddmon.py
+rem cmd
+py -3 pytddmon.py
