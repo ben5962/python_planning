@@ -55,12 +55,12 @@ class testbdd(unittest.TestCase):
         #item 297
         import tempfile
         cls.xplode_from_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        cls.from.data = ["1,2,3 1 2016 P1","1 2 2016 P2"]
-        for l in cls.from.data:
+        cls.from_data = ["1,2,3 1 2016 P1","1 2 2016 P2"]
+        for l in cls.from_data:
             print(l, cls.xplode_from_file)
         cls.xplode_to_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        cls.to.data = ["1 1 2016 P1", "2 1 2016 P1", "3 1 2016 P1", "1 2 2O16 P2"]
-        for m in cls.to.data:
+        cls.to_data = ["1 1 2016 P1", "2 1 2016 P1", "3 1 2016 P1", "1 2 2O16 P2"]
+        for m in cls.to_data:
             print(m, cls.xplode_to_file)
 
 
