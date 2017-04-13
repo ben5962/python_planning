@@ -89,7 +89,13 @@ q existe pas et fermant cnx"""
 
 
     def TestSchemasDbExiste(self):
-        """teste si la db obeit bien au schemas"""
+        """teste si la db obeit bien au schemas.
+pour l instant test sommaire: ok si possede au moins une table grace a la
+valeur de verite python vraie si liste non nulle.
+TODO verifier si les champs de chaque table correspondent
+en comparant la table speciale sqlite a une table custom de meme forme
+stockant les noms de tables, leurs noms et types de champs et
+leurs contraintes"""
         print("verif si schemas db existe et conforme")
         ListeTables = self.getCnx().execute(self.getBibliothecaire_Dba()
                                 .getRequeteMetaByName('nom_tables_existantes')[0],
@@ -107,8 +113,8 @@ q existe pas et fermant cnx"""
             print ("trop petit pr e fic sqlitr3")
             return False
         with open (filename, 'rb') as fd :
-            fd = read (TAILLE_HEADER_SQLITE3)
-            return fd [:16] == 'SQLite format 3\x00'
+            header = fd.read (TAILLE_HEADER_SQLITE3)
+            return header [:16] == 'SQLite format 3\x00'
             
     def TestFichierDbExiste(self):
         """teste l existance d un FICHIER sqlite3"""
@@ -163,8 +169,10 @@ q existe pas et fermant cnx"""
     def setSchemaDb(self):
         """cree la structure de la base si elle n existe pas"""
         print("creation du schemas")
-        self.getCnx().execute(self.getBibliothecaire_Dba().getRequeteCreaByName('creer_tables')[0],
-                              self.getBibliothecaire_Dba().getRequeteCreaByname('creer_tables')[1])
+        self.getCnx().execute(
+            self.getBibliothecaire_Dba()
+            .getRequeteCreaByName('creer_tables')
+            )
         print("schemas doit maintenant etre cree")
                               
     
@@ -194,22 +202,29 @@ class bibliothecaire_dba (object):
             self.dicorequetes.setdefault('lecture', {})
             self.dicorequetes.setdefault('ecriture', {})
             self.dicorequetes.setdefault('meta', {})
-            self.dicorequetes['meta'].setdefault(
-                                                    'nom_tables_existantes',
-                                                    ("SELECT name from sqlite_master where type='table' and name = ?",
-                                                        (nom_table_liste_postes,)
-                                                     )
-                                                )
-            self.dicorequetes['agregation'].setdefault('nb_postes_saisis', ("SELECT COUNT(*) FROM table " + nom_table_liste_postes, ))
-            self.dicorequetes['lecture'].setdefault('tous_postes', ("""SELECT
-                                debut_poste as 'd [timestamp]',
-                                fin_poste as 'f [timestamp]'
-                                from """ + nom_table_liste_postes, "" ))
-            self.dicorequetes['lecture'].setdefault('postes_debutes_ou_termines_ou_les_deux_dans_annee', ("""SELECT
-                                debut_poste as 'd [timestamp]',
-                                fin_poste as 'f [timestamp]'
-                                from """ + nom_table_liste_postes
-                                + """WHERE  d > ?  AND f <= ?""", "" ))
+            self.dicorequetes.setdefault('crea', {})
+            self.dicorequetes['meta'].setdefault('nom_tables_existantes',
+                                                 ("SELECT name from sqlite_master where type='table' and name = ?",
+                                                  (nom_table_liste_postes,)
+                                                  )
+                                                 )
+            self.dicorequetes['agregation'].setdefault('nb_postes_saisis',
+                                                       ("SELECT COUNT(*) FROM table "
+                                                        + nom_table_liste_postes, )
+                                                       )
+            self.dicorequetes['lecture'].setdefault('tous_postes',
+                                                    ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]' from """
+                                                     + nom_table_liste_postes, "" )
+                                                    )
+            self.dicorequetes['lecture'].setdefault('postes_debutes_ou_termines_ou_les_deux_dans_annee',
+                                                    ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]' from """
+                                                     + nom_table_liste_postes
+                                                     + """WHERE  d > ?  AND f <= ?""", "" )
+                                                    )
+            self.dicorequetes['crea'].setdefault('creer_tables',
+                                                 "CREATE TABLE {} ( debut_poste TEXT, fin_poste TEXT, type_poste TEXT, CONSTRAINT debut_unique UNIQUE (debut_poste), CONSTRAINT fin_unique UNIQUE (fin_poste))".format(nom_table_liste_postes)
+                                                 )
+                                                 
 
         
 
@@ -229,6 +244,10 @@ class bibliothecaire_dba (object):
         def getRequeteLectureByName(self, nom):
             """fournit le texte d une requte de type lecture"""
             return self.getRequeteTypedByName('lecture', nom)
+
+        def getRequeteCreaByName(self, nom):
+            """fournit le texte d une requete de type creation"""
+            return self.getRequeteTypedByName('crea', nom)
             
         
         def getListeRequeteLecture(self,nom):
@@ -244,6 +263,7 @@ class larbin (object):
     a la resp de remplir la base
     de fiches de p reelles
     """
+    fichiers_larbin = []
     pass
 
 class auditeur  (object ):
