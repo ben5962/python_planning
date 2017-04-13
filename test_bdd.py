@@ -1,6 +1,7 @@
 # coding: utf-8
 import unittest
 import sqlite3
+from fichiersTemporaires import writeFichierTemporaire, getFichierTemporaire, readFichierTemporaire
 #import module_repertoire
 #import os
 
@@ -37,6 +38,19 @@ class testbdd(unittest.TestCase):
 
 
 
+    def assertSameFileContent(self, fich1, fich2):
+        #item 306
+        assertion = False
+        for ligne in readFichierTemporaire(fich1):
+            l = readLineFichierTemporaire(fich2)
+            if ligne == l:
+                assertion = True
+                print("les lignes sont similaires")
+            else:
+                print("les fichiers diffèrent: ",ligne, " vs ", l)
+        return assertion
+
+
     def setUpClass(cls):
         #item 110
         """AVANT TOUS LES TESTS 
@@ -53,15 +67,18 @@ class testbdd(unittest.TestCase):
             cur = cls.cnx.cursor()
             cur.execute(req)
         #item 297
-        import tempfile
-        cls.xplode_from_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        cls.from_data = ["1,2,3 1 2016 P1","1 2 2016 P2"]
-        for l in cls.from_data:
-            print(l, cls.xplode_from_file)
-        cls.xplode_to_file = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        cls.to_data = ["1 1 2016 P1", "2 1 2016 P1", "3 1 2016 P1", "1 2 2O16 P2"]
-        for m in cls.to_data:
-            print(m, cls.xplode_to_file)
+        
+        cls.de = getFichierTemporaire()
+        data = ["1,2,3 1 2016 P1","1 2 2016 P2"]
+        for l in data:
+            writeFichierTemporaire(cls.de, l)
+        
+        cls.modele = getFichierTemporaire()
+        data = ["1 1 2016 P1", "2 1 2016 P1", "3 1 2016 P1", "1 2 2016 P2"]
+        for m in data:
+            writeFichierTemporaire(cls.modele, m)
+        
+        cls.vers = getFichierTemporaire()
 
 
     def tearDownClass(cls):
@@ -73,7 +90,7 @@ class testbdd(unittest.TestCase):
         
         cls.cnx.close()
         #item 295
-        raise NotImplemented
+        # raise NotImplemented
 
 
     def test_DB_schema(self):
@@ -234,23 +251,16 @@ class testbdd(unittest.TestCase):
         #item 270
         import xpld
         objet_xpld = xpld.xpld()
-        #item 269
-        
-        ligne = "1,2,3 1 2016 P1"
         #item 271
         #main : argparse et verifs sur boucle principale
         #verif exception si ouverture de fichier pas present
+        import fileDoesNotExist
         def file_noo():
-            objet_xpld.file_operations(objet_xpld.display_results,"fichierexistepas.txt","")
-        self.assertRaises(IOError,file_noo)
-        #verif fonctionnement ok de objet_xpld.display_results
-        # en ligne de commande, pas le choix
-        # fait, peniblement.
-
-
-    def test_IO_file_operations_filenotfound(self):
-        #item 272
-        raise Exception("NotImplemented")
+            objet_xpld.file_operations(objet_xpld.xplode, self.__class__.de, self.__class__.vers)
+        
+        bool2FichiersOntMemeContenu = self.assertSameFileContent(self.__class__.vers, self.__class__.modele)
+        
+        self.assertEqual(True, bool2FichiersOntMemeContenu)
 
 
     def test_NAMESPACE_moduleparse_fileparse(self):
