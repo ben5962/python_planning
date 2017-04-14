@@ -255,7 +255,86 @@ class bibliothecaire_dba (object):
             return self.getRequeteTypedByName('meta',nom)
 
 
-            
+class Entree(object):
+    
+    """{'day': 13, 'month': 12, 'year': 2014, 'poste': 'P1'}
+une entree est une a deux dates et un un type de pose et
+une categorie de poste il a la responsabilite de renvovyer une representation
+exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees"""
+    import constantes
+    import datetime
+    def __init__(self,ligne_poste):
+        self.ligne_poste = ligne_poste
+        self.setNomPoste()
+        self.setDebutPoste()
+        self.setFinPoste()
+
+    def getLignePoste(self):
+        return self.ligne_poste
+
+    def getYear(self):
+        return self.getLignePoste()['year']
+
+    def getMonth(self):
+        return self.getLignePoste()['month']
+
+    def getDay(self):
+        return self.getLignePoste()['day']
+
+    def setNomPoste(self):
+        self.nom_poste = self.getLignePoste()['poste']
+
+    def getNomPoste(self):
+        return self.nom_poste
+
+    def getHeureDebut(self):
+        return self.constantesGetHeureDebutFromNomPoste(self.getNomPoste())
+
+    def constantesGetHeureDebutFromNomPoste(self,nomposte):
+        import constantes
+        return constantes.postes[nomposte]['heure_debut']
+
+    def setDebutPoste(self):
+        import datetime
+        
+        date_debut_poste = datetime.date(
+            self.getYear(),
+            self.getMonth(),
+            self.getDay()
+            )                                        
+        heure_debut_poste = datetime.time(self.getHeureDebut())
+        self.debut_poste = datetime.datetime.combine(date_debut_poste,
+                                                     heure_debut_poste)
+    def getDebutPoste(self):
+        return self.debut_poste
+
+    def constantesGetDureeFromNomPoste(self,nomposte):
+        import constantes
+        return constantes.postes[nomposte]['duree']
+
+    def getDureePoste(self):
+        return self.constantesGetDureeFromNomPoste(self.getNomPoste())
+
+    def setFinPoste(self):
+        import datetime
+        self.fin_poste = self.getDebutPoste() + datetime.timedelta(self.getDureePoste())
+
+    def getFinPoste(self):
+        return self.fin_poste
+
+    
+    
+    def representation(self):
+        return "{},{},{}".format(self.getDebutPoste(), self.getFinPoste(), self.getNomPoste())
+        
+
+        
+
+    
+        
+        
+        
+    
 class larbin (object):
     """a la resp de
     remplir la base de postes
@@ -263,8 +342,15 @@ class larbin (object):
     a la resp de remplir la base
     de fiches de p reelles
     """
-    fichiers_larbin = []
-    pass
+    def doit(self):
+        import xpld
+        fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
+        for fichier in fichiers_larbin:
+            with open(fichier) as f:
+                for ligne_fichier in f:
+                    for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
+                        print(Entree(ligne_poste).representation())
+    
 
 class auditeur  (object ):
     """a la rep de lancer
