@@ -30,7 +30,21 @@ class db (object):
             return realdb().getAllPostes()
             
       
-    pass
+    def getListeRapports(self):
+        """ doit renvoyer la liste des instances de tous les rapports
+possibles. il faut combiner les types  de rapports avec les
+annees de rapport et claquer ca dans une liste
+ou alors le saisir à la main et le claquer dans une liste"""
+        return [
+            ErrAnnu(),
+            ErrHsup39()
+            ]
+
+class ErrAnnu(object):
+    """doit signifier les erreurs dans le decompte de l annualisation.
+pour l instant je pars d une annualisation de janvier à janvier"""
+    import datetime
+    def __init__(self,annee=2016)
       
 
 
@@ -42,7 +56,7 @@ class realdb (object):
     - dispo pour les req en lecture si présence de champs"""
     def __init__(self, fichdb='planning.db'):
         """ besoins: nomfichdb"""
-        self.setBibliothecaire_Dba()
+        self.setBibliothecaireDba()
         self.fichierdb = "" # initialise par setFichierDb
         self.setFichierDb (fichdb)
         # apres cette etape le fichier existe forcement
@@ -51,14 +65,14 @@ class realdb (object):
         #self.cnx = "" # initialise par setCnx
         self.setCnx()
 
-    def setBibliothecaire_Dba(self):
+    def setBibliothecaireDba(self):
         """initialise un bibliothecaire. le lie a l objet realdb"""
         self.bibliothecaire_dba = bibliothecaire_dba()
 
-    def getBibliothecaire_Dba(self):
+    def getBibliothecaireDba(self):
         """si pas de bibli, le cree. sinon utilise l existant"""
         if self.bibliothecaire_dba is None:
-            self.setBibliothecaire_Dba()
+            self.setBibliothecaireDba()
         return self.bibliothecaire_dba
 
     
@@ -97,9 +111,9 @@ en comparant la table speciale sqlite a une table custom de meme forme
 stockant les noms de tables, leurs noms et types de champs et
 leurs contraintes"""
         print("verif si schemas db existe et conforme")
-        ListeTables = self.getCnx().execute(self.getBibliothecaire_Dba()
-                                .getRequeteMetaByName('nom_tables_existantes')[0],
-                                            self.getBibliothecaire_Dba().getRequeteMetaByName('nom_tables_existantes')[1]).fetchall()
+        ListeTables = self.getCnx().execute(self.getBibliothecaireDba()
+                                .getRequeteMetaByName('non_vide_si_table_planning_existe')[0],
+                                            self.getBibliothecaireDba().getRequeteMetaByName('non_vide_si_table_planning_existe')[1]).fetchall()
         return ListeTables
     
     def isSqlite3(self,filename):
@@ -119,17 +133,37 @@ leurs contraintes"""
     def TestFichierDbExiste(self):
         """teste l existance d un FICHIER sqlite3"""
         return self.isSqlite3(self.getFichierDb())
-    
-    def setCnx (self):
-        """ fournit cnx a db existante """
+
+    def _connexion_effective(self):
+        """effectue la connexion effective. sans condition"""
         import sqlite3
-        print("creation de la cnx")
         db = self.getFichierDb()
         param1 = sqlite3.PARSE_DECLTYPES
         param2 = sqlite3.PARSE_COLNAMES
         masque_options = param1 | param2
         self.cnx = sqlite3.connect(db, masque_options)
-        print("cnx doit etre cree desormais")
+
+    def TestAttributCnxExisteEtCnxOuverte(self):
+        """doit provoquer un attributError si self.cnx existe pas et un sqlite.programmingError si la cnx est fermée. ne sert à rien d autre"""
+
+        self.cnx.execute("SELECT 1 FROM "
+                 + self.getNomTablePostes()
+                 + " LIMIT 1") #FAIL IF self.cnx does not exist
+
+        
+    
+    def setCnx (self):
+        """ fournit cnx a db existante """
+        import sqlite3
+        from sqlite3 import ProgrammingError #le cas de la cnx fermee
+        from sqlite3 import OperationalError #cas de départ : le cas de la table planning existant pas encore dans
+        try:
+            self.TestAttributCnxExisteEtCnxOuverte()
+        except (AttributeError,ProgrammingError,OperationalError) as e :
+            print("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle", e)
+            self._connexion_effective()
+        finally:
+            print("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
 
 
     def fermerCnx(self,cnx):
@@ -153,24 +187,14 @@ leurs contraintes"""
         """renvoie le jeton de cnx.
         en cree un nv jmsi neceds
         EAFP way"""
-        print("recup d une cnx")
-        import sqlite3
         self.setCnx()
         return self.cnx
-##        try:
-##            print("cnx existe deja?")
-##            self.cnx.execute("SELECT 1 FROM ? LIMIT 1", (self.getNomTablePostes(),)) #FAIL IF self.cnx does not exist
-##        except AttributeError or sqlite3.ProgrammingError :
-##            print("existe pas dois la creer")
-##            self.setCnx()
-##        finally: 
-##            return self.cnx
 
     def setSchemaDb(self):
         """cree la structure de la base si elle n existe pas"""
         print("creation du schemas")
         self.getCnx().execute(
-            self.getBibliothecaire_Dba()
+            self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_tables')
             )
         print("schemas doit maintenant etre cree")
@@ -181,9 +205,11 @@ leurs contraintes"""
         """ resp faciliter debug en
 renvoyant tous les postes 
 sans retraitement"""
-        self.getCnx().execute(
-        	bibliothecaire_dba.getRequeteLectureByName('tous_postes'))
-    pass
+        return self.getCnx().execute(
+        	self.getBibliothecaireDba()
+                .getRequeteLectureByName('tous_postes')
+                ).fetchall()
+    
 
 class bibliothecaire_dba (object):
         """ resp conn texte ttes les
@@ -203,14 +229,14 @@ class bibliothecaire_dba (object):
             self.dicorequetes.setdefault('ecriture', {})
             self.dicorequetes.setdefault('meta', {})
             self.dicorequetes.setdefault('crea', {})
-            self.dicorequetes['meta'].setdefault('nom_tables_existantes',
+            self.dicorequetes['meta'].setdefault('non_vide_si_table_planning_existe',
                                                  ("SELECT name from sqlite_master where type='table' and name = ?",
                                                   (nom_table_liste_postes,)
                                                   )
                                                  )
-            self.dicorequetes['agregation'].setdefault('nb_postes_saisis',
-                                                       ("SELECT COUNT(*) FROM table "
-                                                        + nom_table_liste_postes, )
+            self.dicorequetes['meta'].setdefault('nombre_postes_saisis',
+                                                       "SELECT COUNT(*) FROM "
+                                                        + nom_table_liste_postes
                                                        )
             # convertisseur de texte vers timestamp existe par defaut. rend non nécessaire l ecriture d un convertisseur sqllite3->py
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
@@ -218,8 +244,8 @@ class bibliothecaire_dba (object):
             # sinon ben def converter_timestamp, sqlite3.register_converter("timestamp", converter_timestamp)
             
             self.dicorequetes['lecture'].setdefault('tous_postes',
-                                                    ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]', nom_poste, categorie_poste from """
-                                                     + nom_table_liste_postes, "" )
+                                                    """SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]', nom_poste, categorie_poste from """
+                                                     + nom_table_liste_postes
                                                     )
             self.dicorequetes['lecture'].setdefault('postes_debutes_ou_termines_ou_les_deux_dans_annee',
                                                     ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]' from """
@@ -346,7 +372,7 @@ exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees""
 
     def setFinPoste(self):
         import datetime
-        self.fin_poste = self.getDebutPoste() + datetime.timedelta(self.getDureePoste())
+        self.fin_poste = self.getDebutPoste() + datetime.timedelta(hours = self.getDureePoste())
 
     def getFinPoste(self):
         return self.fin_poste
@@ -391,7 +417,7 @@ class larbin (object):
     def getDb(self):
         return self.db
 
-    def getBibliothecaire_Dba(self):
+    def getBibliothecaireDba(self):
         return self.bib
     
     def a_saisir(self):
@@ -426,11 +452,39 @@ class larbin (object):
 
     def saisir(self):
         for entree in self.gen_dico_entree_ite():
-            self.getDb().getCnx().execute(self.getBibliothecaire_Dba().getRequeteEcritureByName('saisir_entree'),
-                                          (entree.to_dict()['debut_poste'], entree.to_dict()['fin_poste'], entree.to_dict['nom_poste'],
-                                           entree.to_dict()['categorie']))
+            print("ecriture de ", entree.getDebutPoste(),entree.getFinPoste(), entree.getNomPoste(), entree.getCategorie())
+            self.getDb().getCnx().execute(self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree'),
+                                          (entree.getDebutPoste(),
+                                           entree.getFinPoste(),
+                                           entree.getNomPoste(),
+                                           entree.getCategorie()
+                                           )
+                                          )
+        
 
-        self.getDb().commit()
+            self.getDb().getCnx().commit()
+            print("ecriture commitée")
+
+
+    def test_saisir(self):
+        for entree in self.gen_dico_entree_ite():
+            print(entree.getDebutPoste(), entree.getFinPoste(), entree.getNomPoste(), entree.getCategorie())
+
+    def verifier_travail(self):
+        """verifie que le nombre de saisies dans la base n est pas nul"""
+        tuple_resultat = self.getDb().getCnx().execute(self.getBibliothecaireDba()
+                                    .getRequeteMetaByName('nombre_postes_saisis')
+                                    ).fetchone()
+        nb = tuple_resultat[0] #le nombre doit etre extrait du tuple
+        for member in tuple_resultat:
+            print("le nombre d elements de planning saisis est de : {}"
+                  .format(nb)
+                  )
+        if nb:  #vrai si non nul
+            return True
+        else:
+            return False
+        
 
 ##Traceback (most recent call last):
 ##  File "<pyshell#38>", line 1, in <module>
@@ -475,7 +529,12 @@ class auditeur  (object ):
     toutes les taches errpaye
     et presenter le resultat dans un
     rapport formate"""
-    pass
+    liste_rapports = bdd.getListeRapports()
+    for rapport in liste_rapports:
+        rapport.lancer_recherche_erreurs()
+        
+    
+    
 
 
 class fpaiereelle (object):
