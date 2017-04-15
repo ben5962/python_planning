@@ -212,8 +212,13 @@ class bibliothecaire_dba (object):
                                                        ("SELECT COUNT(*) FROM table "
                                                         + nom_table_liste_postes, )
                                                        )
+            # convertisseur de texte vers timestamp existe par defaut. rend non nécessaire l ecriture d un convertisseur sqllite3->py
+            # pour le text iso8601 string (sqlite3) -> timestamp (python)
+            # car déjà fourni
+            # sinon ben def converter_timestamp, sqlite3.register_converter("timestamp", converter_timestamp)
+            
             self.dicorequetes['lecture'].setdefault('tous_postes',
-                                                    ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]' from """
+                                                    ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]', nom_poste, categorie_poste from """
                                                      + nom_table_liste_postes, "" )
                                                     )
             self.dicorequetes['lecture'].setdefault('postes_debutes_ou_termines_ou_les_deux_dans_annee',
@@ -222,8 +227,27 @@ class bibliothecaire_dba (object):
                                                      + """WHERE  d > ?  AND f <= ?""", "" )
                                                     )
             self.dicorequetes['crea'].setdefault('creer_tables',
-                                                 "CREATE TABLE {} ( debut_poste TEXT, fin_poste TEXT, type_poste TEXT, CONSTRAINT debut_unique UNIQUE (debut_poste), CONSTRAINT fin_unique UNIQUE (fin_poste))".format(nom_table_liste_postes)
+                                                 "CREATE TABLE {} ( debut_poste TEXT, fin_poste TEXT, nom_poste TEXT, categorie_poste TEXT, CONSTRAINT debut_unique UNIQUE (debut_poste), CONSTRAINT fin_unique UNIQUE (fin_poste))".format(nom_table_liste_postes)
                                                  )
+
+            self.dicorequetes['crea'].setdefault('creer_tables_datetimeexperimentalsqlite3',
+                                                 "CREATE TABLE {} ( debut_poste timestamp, fin_poste timestamp, nom_poste TEXT, categorie_poste TEXT, CONSTRAINT debut_unique UNIQUE (debut_poste), CONSTRAINT fin_unique UNIQUE (fin_poste))".format(nom_table_liste_postes)
+                                                 )
+            
+
+            # cette premiere version de saisie nécessite l utilisation de liste comme champ de saisie en deuxieme parma de execute(sql, liste)
+            # la nature des champs dans la db dépoend donc de l ordre ds lequ les elements st jectes ds la liste python
+            # bof
+            self.dicorequetes['ecriture'].setdefault('saisir_entree',
+                                                     "INSERT INTO " + nom_table_liste_postes + " (debut_poste, fin_poste, nom_poste, categorie_poste) VALUES (?, ?, ?, ?)")
+
+            #cette variante de saisie permet d utiliser des dicos comme champs de saisie en deuxieme parametre de execute(sql, dico)
+            # la nature des champs ds la db depend donc de leur nom dans le dico python, donc mieux
+            # 
+            self.dicorequetes['ecriture'].setdefault('saisir_entree_variante_dico',
+                                                     "INSERT INTO " + nom_table_liste_postes + " VALUES (debut_poste=:, fin_poste:=, nom_poste=:, categorie_poste=:)")
+                                                 
+
                                                  
 
         
@@ -254,6 +278,10 @@ class bibliothecaire_dba (object):
             """renvoie la liste des requetes de type lecture"""
             return self.getRequeteTypedByName('meta',nom)
 
+        def getRequeteEcritureByName(self, nom):
+            """fournit le texte d une requte de type ecriture"""
+            return self.getRequeteTypedByName('ecriture', nom)
+
 
 class Entree(object):
     
@@ -268,6 +296,7 @@ exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees""
         self.setNomPoste()
         self.setDebutPoste()
         self.setFinPoste()
+        self.setCategorie()
 
     def getLignePoste(self):
         return self.ligne_poste
@@ -322,10 +351,23 @@ exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees""
     def getFinPoste(self):
         return self.fin_poste
 
-    
+    def setCategorie(self):
+        self.categorie = self.constantesGetCategorieFromNomPoste(self.getNomPoste())
+
+    def constantesGetCategorieFromNomPoste(self, nomposte):
+        import constantes
+        return constantes.postes[nomposte]['categ']
+
+    def getCategorie(self):
+        return self.categorie
     
     def representation(self):
-        return "{},{},{}".format(self.getDebutPoste(), self.getFinPoste(), self.getNomPoste())
+        return "{},{},{}, {}".format(self.getDebutPoste(), self.getFinPoste(), self.getNomPoste(), self.getCategorie())
+
+    def to_dict(self):
+        return { 'debut_poste' : self.getDebutPoste(), 'fin_poste' : self.getFinPoste(), 'nom_poste' : self.getNomPoste(), 'categorie' : self.getCategorie() }
+
+    
         
 
         
@@ -342,14 +384,89 @@ class larbin (object):
     a la resp de remplir la base
     de fiches de p reelles
     """
-    def doit(self):
+    def __init__(self):
+        self.db = realdb()
+        self.bib = bibliothecaire_dba()
+
+    def getDb(self):
+        return self.db
+
+    def getBibliothecaire_Dba(self):
+        return self.bib
+    
+    def a_saisir(self):
         import xpld
+        
         fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
         for fichier in fichiers_larbin:
             with open(fichier) as f:
                 for ligne_fichier in f:
                     for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
                         print(Entree(ligne_poste).representation())
+
+    def a_saisir_test_dico(self):
+        import xpld
+        
+        fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
+        for fichier in fichiers_larbin:
+            with open(fichier) as f:
+                for ligne_fichier in f:
+                    for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
+                        print(Entree(ligne_poste).to_dict())
+
+    def gen_dico_entree_ite(self):
+        import xpld
+        
+        fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
+        for fichier in fichiers_larbin:
+            with open(fichier) as f:
+                for ligne_fichier in f:
+                    for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
+                        yield Entree(ligne_poste)
+
+    def saisir(self):
+        for entree in self.gen_dico_entree_ite():
+            self.getDb().getCnx().execute(self.getBibliothecaire_Dba().getRequeteEcritureByName('saisir_entree'),
+                                          (entree.to_dict()['debut_poste'], entree.to_dict()['fin_poste'], entree.to_dict['nom_poste'],
+                                           entree.to_dict()['categorie']))
+
+        self.getDb().commit()
+
+##Traceback (most recent call last):
+##  File "<pyshell#38>", line 1, in <module>
+##    a.saisir()
+##  File "C:\Users\Utilisateur\Documents\GitHub\python_planning\db.py", line 430, in saisir
+##    (entree.to_dict()['debut_poste'], entree.to_dict()['fin_poste'], entree.to_dict['nom_poste'],
+##TypeError: 'method' object is not subscriptable
+##>>> import sqlite3
+##>>> a = sqlite3.connect(":memory:")
+##>>> a.execute("create table essai (dt datetime)")
+##<sqlite3.Cursor object at 0x02326C60>
+##>>> a.commit()
+##>>> import datetime
+##>>> a = { le_datetime : datetime.datetime.now() }
+##Traceback (most recent call last):
+##  File "<pyshell#44>", line 1, in <module>
+##    a = { le_datetime : datetime.datetime.now() }
+##NameError: name 'le_datetime' is not defined
+##>>> a = { "le_datetime" : datetime.datetime.now() }
+##>>> a
+##{'le_datetime': datetime.datetime(2017, 4, 15, 9, 8, 19, 169198)}
+##>>> a = sqlite3.connect(":memory:")
+##>>> a.execute("create table essai (dt datetime)")
+##<sqlite3.Cursor object at 0x02326C20>
+##>>> a.commit()
+##>>> dico = { "le_datetime" : datetime.datetime.now() }
+##>>> a.execute("insert into essai values (dt =: le_datetime) ", dico)
+##Traceback (most recent call last):
+##  File "<pyshell#51>", line 1, in <module>
+##    a.execute("insert into essai values (dt =: le_datetime) ", dico)
+##sqlite3.OperationalError: unrecognized token: ":"
+##            
+        
+
+    
+                        
     
 
 class auditeur  (object ):
