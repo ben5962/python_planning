@@ -1,9 +1,9 @@
 #-*-coding:utf8;-*-
 #qpy:2
-#qpy:console
+#qpy:consol
 
-class db (object):
-    """. doit connaitre tous les postes.
+class bdd (object):
+    """1) . doit connaitre tous les postes.
     . (pour annu 1er jan 31 dec < 1607h):
     doit pouvoir renvoyer 
     une liste de postes 
@@ -23,14 +23,47 @@ class db (object):
     lundi de la semaine compre
      de la semaine 1 iso 8901, l
      en la complétant éventuellement
-     à la dernière semaine. """
+     à la dernière semaine.
+     2) connait tous les noms de classes de taches de verif 
+    2) cree à la demande une liste d
+    instances de Taches de verif
+     """
+
+    def __init__(self):
+        self.ListeNomsTachesVerif = []
+        self.setListeNomsTachesVerif()
+        
+        
+        
+
+    def getListeTaches(self):
+        return self.ToutesLesInstancesDeClasseTachesVerif
+
+    
+
+    def setListeChainesTachesVerifMensuelle(self):
+        """remplit la liste des noms de taches de verif dispo
+chaque verif listee ici doit etre implémentee ou claquer une
+Exception("not implemented")
+"""
+        self.ToutesLesChainesReglesVerif = ["regleHsAnnualisation","regleHs39"]
+
+    def getListeChainesTachesVerifMensuelle(self):
+        return self.ToutesLesChainesReglesVerif
+
+    
+
+
+        
+        
+        
     def getPostes (self,name):
         
         if name == "all":
             return realdb().getAllPostes()
             
       
-    def getListeRapports(self):
+    def getListeInstanceRapports(self):
         """ doit renvoyer la liste des instances de tous les rapports
 possibles. il faut combiner les types  de rapports avec les
 annees de rapport et claquer ca dans une liste
@@ -42,10 +75,32 @@ ou alors le saisir à la main et le claquer dans une liste"""
 
 class ErrAnnu(object):
     """doit signifier les erreurs dans le decompte de l annualisation.
-pour l instant je pars d une annualisation de janvier à janvier"""
+pour l instant je pars d une annualisation de janvier à janvier
+l annualisation compare les fiches de paye réelles aux fiche de paye theorique.
+les fiches de paye reelles n ont aucune heure sup sauf la derniere qui cumule
+les heures sup de l annee par rapport au seuil legal de 17
+https://www.juristique.org/social/duree-du-travail"""
     import datetime
-    def __init__(self,annee=2016)
-      
+    def __init__(self,annee=2016, debut={'heure':0, 'minute': 0, 'jour':1, 'mois':1, 'annee':0}, duree={'heure':0, 'minute': 0, 'jour':0, 'mois':0, 'annee':1}):
+        self.annee = annee
+        self.datedebut = datetime.datetime(self.annee,
+                                         delta_debut.mois,
+                                         delta_debut.jour,
+                                         deltat_debut.heure,
+                                         delta_debut.minute)
+        self.datefin = self.datedebut
+        + datetime.timedelta(years=duree.annee)
+        
+    def getDateDebut(self):
+        return self.datedebut
+
+    def getDateFin(self):
+        return self.datefin
+
+    def getAnnee(self):
+        return self.annee
+        
+        
 
 
 class realdb (object):
@@ -520,37 +575,141 @@ class larbin (object):
         
 
     
-                        
-    
+class boss(object):
+    """decide sur quelle annee(s) l audit de fiche de paie sera
+lancee"""
+    pass
 
-class auditeur  (object ):
+
+class Regle(object):
+    """ a la responsabilité:
+- de creer une regle sous forme de champ d init dans fpaie reelle
+- de creer un seuil
+- de calculer le delta
+- de chiffrer le delta
+"""
+
+
+    
+class auditeur  (object):
     """a la rep de lancer
     une tache errpaye nommee ou
     toutes les taches errpaye
     et presenter le resultat dans un
     rapport formate"""
-    liste_rapports = bdd.getListeRapports()
-    for rapport in liste_rapports:
-        rapport.lancer_recherche_erreurs()
+    def __init__(self,annee):
+        self.annee = annee
+        self.listeRegles =[]
+        self.setListeRegles ()
+        self.bdd = bdd()
+
+    def construireTacheVerif(self,nom_constructeur):
+        """constuit une tache de verif à partir de la combinaison magique"""
+        classeDestinataire = getattr(self, nom_constructeur)#  TODO ajouter la maniere d ajouter le parametre au constructeur
+        #ref : "python create class instance from class name"
+        instance = classeDestinataire()
+        self.getListeTaches().append(instance)
+
+    def getBdd(self):
+        return self.bdd
+        
+    def getListeRegles (self):
+        return self.listeRegles
+        
+    def setListeRegles(self):
+        self.getBdd().
+        ajouterRegleAnnualisation ()
+        ajouterRegleHSup39 ()
+
+
+        
+    def ajouterRegle (self, regle):
+        self.getListeRegles.append (regle)
+    
+    def ajouterRegleAnnualisation (self):
+        annu = regleHsAnnualisation ()
+        self.ajouterRegle (annu)
+        
+    def ajouterRegleHSup39 (self):
+        hs = regleHs39 ()
+        self.ajouterRegle (hs)
+
+    def auditer(self):
+        """ lance les taches de verif de fiches de paye sur l annee"""
+        # liste_annees = bdd.getListeAnneesDispo() # pour patron, ca.
+        liste_rapports = bdd.getListeRapports()
+        month_range = range (1,13)
+        for month in month_range:
+            for nom_classe_rapport in liste_rapports:
+                rapport.lancer_recherche_erreurs(annee)
         
     
     
-
-
-class fpaiereelle (object):
+class TacheVerif (object):
+    """une regle doit
+        - ajouter tache de verif a 
+        un rapprt de verif
+         fiche de p d un 
+        mois donne ou d une liste de mois
+        sous con 
+        - fournit fiche paye reelle du mois sous l angle de la verf
+        - foirnir la fiche de paye caclculee sous l angle de la verif
+        - conclure sur la presence ou non d erreur
+        - qtifier en unites heures (categ diff selon categ bonif diff selon categ )
+        l erreur
+        - deleguer le chiffrage de l err et l afficher
+        - envoyer le chiffrage vers un sommateur de fin de rapport
+        """
+    def __init__(self, year, month):
+        self.year = year
+        self.month = month
+        self.fpaie_reelle = bdd.getFpaieReelle (year= self.year, month = self.month)
+        
+    def getSpecifiqueFpaieReelle (self):
+        pass
+            
+    def setSpecifiqueFpaieCalc (self):
+        pass
+        
+    def getSpecifiqueFpaieCalc (self):
+        self.setSpecifiqueFpaieCalc ()
+        pass
+         
+         
+class regleHsAnnualisation  (TacheVerif ):
+    super (regleHsAnnualisation ).__init__(year,month)
+    
+    pass
+    
+class regleHs39 (TacheVerif ):
+    pass
+    
+class Fpaie (object):
     """resp repr fpaie reelle
     pour un mois donne et une
     annee donnee.
     """
     def __init__(self, mois=1, annee=2002, hsup25=0, hsup50=0, hdim10=0, hjf100=0, hnuit10=0):
-        this.mois = mois
-        this.annee = annee
-        this.hsup25 = hsup25
-        this.hsup50 = hsup50
-        this.hdim10 = hdim10
-        this.hnuit10 = hnuit10
-        this.hjf100 = hjf100
-    pass
+        self.mois = mois
+        self.annee = annee
+        self.hsup25 = hsup25
+        self.hsup50 = hsup50
+        self.hdim10 = hdim10
+        self.hnuit10 = hnuit10
+        self.hjf100 = hjf100
+
+class Fpaiereelle(Fpaie):
+    """c est une fpaie, mais dont les calculs
+    annu, hsup25 etc etc sont bases sur le planning,
+    pas sur la saisie de fiches de paie
+    il prend en plus une valeur booleenne annualisation
+    et une valeur booleenne mois_de_decompte_annualisation"""
+    def __init__(self,  mois=1, annee=2002, hsup25=0, hsup50=0, hdim10=0, hjf100=0, hnuit10=0):
+        print("Initialisation de l'étudiant {0}".format(id(self)))
+        super(Fpaie, self).__init__(self, mois=1, annee=2002, hsup25=0, hsup50=0, hdim10=0, hjf100=0, hnuit10=0)
+        
+        
+
 
 
 class jourTravaille(object):
