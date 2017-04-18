@@ -3,7 +3,9 @@
 #qpy:consol
 
 class bdd (object):
-    """1) . doit connaitre tous les postes.
+    """
+    bdd est un proxy vers realdb et 
+    1) . doit connaitre tous les postes.
     . (pour annu 1er jan 31 dec < 1607h):
     doit pouvoir renvoyer 
     une liste de postes 
@@ -30,26 +32,76 @@ class bdd (object):
      """
 
     def __init__(self):
-        self.ListeNomsTachesVerif = []
-        self.setListeNomsTachesVerif()
-        
-        
+        #self.setListeNomsEtapesVerificationMensuelle()
+        self.listeEtapesVerificationMensuelle = []
+        self.setListeEtapesVerificationMensuelle()
+
         
 
-    def getListeTaches(self):
-        return self.ToutesLesInstancesDeClasseTachesVerif
-
-    
-
-    def setListeChainesTachesVerifMensuelle(self):
+    def setListeNomsEtapesVerificationMensuelle(self):
         """remplit la liste des noms de taches de verif dispo
 chaque verif listee ici doit etre implémentee ou claquer une
 Exception("not implemented")
 """
-        self.ToutesLesChainesReglesVerif = ["regleHsAnnualisation","regleHs39"]
+        tempListe = [
+            "EtapeVerificationHeuresSupplementairesAnnualisation",
+            "regleHs39"]
+        
+            #http://stackoverflow.com/questions/3451779/how-to-dynamically-create-an-instance-of-a-class-in-python
+        self.listeNomsEtapesVerificationMensuelle = [
+            "EtapeVerificationHeuresSupplementairesAnnualisation",
+            "regleHs39"]
 
-    def getListeChainesTachesVerifMensuelle(self):
-        return self.ToutesLesChainesReglesVerif
+    def getListeNomsEtapesVerificationMensuelle(self):
+        """ doit renvoyer les noms d etapes.  sert en interne a instancier
+les classes par nom"""
+        return self.listeNomsEtapesVerificationMensuelle
+
+
+
+    def setListeEtapesVerificationMensuelle(self):
+        """ doit construire les instances d etapes de  verif
+et les mettre dans une liste
+chaque verif listee ici doit etre implémentee ou claquer une
+Exception("not implemented") """
+        nomEtapesVerificationMensuelle = [
+            "EtapeVerificationHeuresSupplementairesAnnualisation",
+            "regleHs39"
+            ]
+        #http://stackoverflow.com/questions/3451779/how-to-dynamically-create-an-instance-of-a-class-in-python
+        module = "db"
+        for nom_etape in nomEtapesVerificationMensuelle:
+            self.getListeEtapesVerificationMensuelle().append(
+                self.construireEtapeVerificationMensuelleFromNomEtape(module,nom_etape)
+                )
+
+    def getListeEtapesVerificationMensuelle(self):
+        """ doit renvoyer les etapes instanciees avec des valeurs par defaut"""
+        return self.listeEtapesVerificationMensuelle
+        
+
+        
+        
+        
+
+
+
+    def construireEtapeVerificationMensuelleFromNomEtape(self,module,nom_constructeur):
+        """constuit une tache de verif à partir de la combinaison magique"""
+        
+        print("module is " + module)
+        import importlib
+        m = importlib.import_module(module)
+        classeDestinataire = getattr(m, nom_constructeur)#  TODO ajouter la maniere d ajouter le parametre au constructeur
+        #ref : "python create class instance from class name"
+        instance = classeDestinataire()
+        return instance
+        
+
+    
+
+
+
 
     
 
@@ -63,15 +115,7 @@ Exception("not implemented")
             return realdb().getAllPostes()
             
       
-    def getListeInstanceRapports(self):
-        """ doit renvoyer la liste des instances de tous les rapports
-possibles. il faut combiner les types  de rapports avec les
-annees de rapport et claquer ca dans une liste
-ou alors le saisir à la main et le claquer dans une liste"""
-        return [
-            ErrAnnu(),
-            ErrHsup39()
-            ]
+
 
 class ErrAnnu(object):
     """doit signifier les erreurs dans le decompte de l annualisation.
@@ -592,60 +636,54 @@ class Regle(object):
 
     
 class auditeur  (object):
-    """a la rep de lancer
-    une tache errpaye nommee ou
-    toutes les taches errpaye
-    et presenter le resultat dans un
-    rapport formate"""
+    """a la rep de lancer sur l annee demandee
+    une verif des fiches de paye mensuelles.
+    - chaque verif de fiche de paye se compose d etapes fournies
+    par bdd.getEtapesVerificationMensuelle()
+    - comme l annee et le mois ne sont connus qu'à l interieur d auditeur,
+    il faut modifier la valeur de annees et de mois de etapeverif au runtime.
+    pas tres tres malin car instanciation à deux endroits
+    mais pas mieux pour l instant.
+    peut etre déplacer l instanciation dans auditeur? 
+    """
     def __init__(self,annee):
         self.annee = annee
-        self.listeRegles =[]
-        self.setListeRegles ()
         self.bdd = bdd()
 
-    def construireTacheVerif(self,nom_constructeur):
-        """constuit une tache de verif à partir de la combinaison magique"""
-        classeDestinataire = getattr(self, nom_constructeur)#  TODO ajouter la maniere d ajouter le parametre au constructeur
-        #ref : "python create class instance from class name"
-        instance = classeDestinataire()
-        self.getListeTaches().append(instance)
+
 
     def getBdd(self):
         return self.bdd
         
-    def getListeRegles (self):
-        return self.listeRegles
-        
-    def setListeRegles(self):
-        self.getBdd().
-        ajouterRegleAnnualisation ()
-        ajouterRegleHSup39 ()
 
+    def renvoyer_entete_rapport(self,month,year):
+        return ''.join("calcul fiche paye annee ", month, " ", year)
 
-        
-    def ajouterRegle (self, regle):
-        self.getListeRegles.append (regle)
-    
-    def ajouterRegleAnnualisation (self):
-        annu = regleHsAnnualisation ()
-        self.ajouterRegle (annu)
-        
-    def ajouterRegleHSup39 (self):
-        hs = regleHs39 ()
-        self.ajouterRegle (hs)
+    def rapporter(self,chaine):
+        """ doit rapporter.
+pour l isntrant print. peut etre TODO logger.log"""
+        print(chaine)
 
     def auditer(self):
         """ lance les taches de verif de fiches de paye sur l annee"""
         # liste_annees = bdd.getListeAnneesDispo() # pour patron, ca.
-        liste_rapports = bdd.getListeRapports()
+        etapes_verification_mensuelle = bdd.getEtapesVerificationMensuelle()
         month_range = range (1,13)
         for month in month_range:
-            for nom_classe_rapport in liste_rapports:
-                rapport.lancer_recherche_erreurs(annee)
+            
+            self.rapporter(self.renvoyer_entete_rapport())
+            
+            for etape in etapes_verification_mensuelle:
+                etape.setYear(self.getYear)
+                etape.setMonth(month)
+                for ligne_rapport in etape.getRapport():
+                    self.rapporter(ligne_rapport)
+                
+                
         
     
     
-class TacheVerif (object):
+class PrincipeEtapeVerificationMensuelle (object):
     """une regle doit
         - ajouter tache de verif a 
         un rapprt de verif
@@ -664,24 +702,91 @@ class TacheVerif (object):
         self.year = year
         self.month = month
         self.fpaie_reelle = bdd.getFpaieReelle (year= self.year, month = self.month)
+        rapport_etape = []
         
     def getSpecifiqueFpaieReelle (self):
+        """accesseur dans la fiche de paye reelle du bon mois de la bonne annee
+au champ interessant l etape de verif.
+ce champ peut varier d une etape à l autre.
+donc accesseur implémenté spécifiquement dans chaque etape de verif
+ainsi:
+ - le champ est déjà présent dans la fiche de paye réelle
+ - il n y a plus qu à accéder à ce champ
+"""
         pass
             
     def setSpecifiqueFpaieCalc (self):
+        """ce champ est calcule a partir du planning (pbblement)
+comme le mode de calcul """
+        
         pass
         
     def getSpecifiqueFpaieCalc (self):
         self.setSpecifiqueFpaieCalc ()
         pass
+
+    def getNomChampCalcule(self):
+        """ renvoie le nom du champ calcule"""
+
+    def setRapport(self):
+        """ cense renvoyer un iterable de lignes, disons une liste
+indiquant:
+le nom du champ calcule, la valeur calculee (obtenue theoriquement)
+la valeur reelle
+la difference, le fait que l employeur doit de l argent au salarie ou non
+"""
+        rapport_etape.append(''.join(["étape de ", self.getNomChampCalcule()]))
+        du = self.getSpecifiqueFpaieCalc()
+        paye = self.getSpecifiqueFpaieRelle()
+        manque_a_payer = du - paye
+        
+        if du > paye:
+            rapport_etape.append("heures du : " + du)
+            rapport_etape.append("heures payees: " + paye)
+            rapport_etape.append("manque à payer: " + manque_a_payer)
+        else:
+            rapport_etape.append("ok heures dues : " + du)
+            rapport_etape.append("ok heures payees: " + paye)
+            
+            
+class EtapeVerificationHeureSupplementaireMensuelle(PrincipeEtapeVerificationMensuelle):
+    """ les verifications d heures supplematairess ont des etapes spécifiques de cacul:
+        - les postes de planning à prendre en compte débordent du mois:
+          * en effet pour le décompte des heures sup39 il faut prendre les semaines qui se terminent
+          dans le mois pris en consideration. donc commencer AVANT le début du mois.
+            * il faut ensuite trancher les mois en semaines terminées et les comparer au seuil légal
+            pour la semaine. il faut ensuite classer les heures dépassant le seuil en catégories dans
+            un tableau (de 39 à 43 = 25%, de 43 à 48 = 50%,  plus de 48 = interdit)
+          * de meme les postes de planning à prendre en compte pour l annualisation 
+          débutent effectivement le 1er janvier à 0h et se terminent effectivement le 31 déc à minuit,
+          ou du premier jour 0h du mois choisi au premier jour 0h du mois choisi année suivante,
+          mais ce calcul n est pas à faire tous les mois mais seulement sur la derniere fiche de paye
+          de la période considérée.
+        - en commun : * un seuil sur une période considérée
+                      * une liste d'une ou plusieurs sous-périodes à considérer
+                      * les postes sur les bords de la période sont à retailler.
+        
+                 
+"""
+    def __init__(self):
+        super (EtapeVerificationHeureSupplementaireMensuelle,self).__init__(year,month)
          
-         
-class regleHsAnnualisation  (TacheVerif ):
-    super (regleHsAnnualisation ).__init__(year,month)
+class EtapeVerificationHeuresSupplementairesAnnualisation  (EtapeVerificationHeureSupplementaireMensuelle):    
+    def __init__(self):
+        super (EtapeVerificationHeuresSupplementairesAnnualisation,self).__init__(year,month)
+
+    def isMoisVerifAnnualisation(self):
+        if isLastMois(periode_annualisation):
+            rapport_etape.append("c est le mois de cumul de l annualisation")
+        else :
+            rapport_etape.append("ca n est pas le mois de cumul de l annualisation")
+
     
-    pass
     
-class regleHs39 (TacheVerif ):
+    
+    
+    
+class regleHs39 (PrincipeEtapeVerificationMensuelle):
     pass
     
 class Fpaie (object):
