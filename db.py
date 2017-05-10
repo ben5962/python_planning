@@ -1,9 +1,11 @@
 #-*-coding:utf8;-*-
 #qpy:2
 #qpy:consol
-
+from metier import Entree
 class bdd (object):
     """
+    les données, indépendemment de leur mode d obtention
+    (db, fichier, osef.... typiquement la tete de ligne du modele)
     bdd est un proxy vers realdb et 
     1) . doit connaitre tous les postes.
     . (pour annu 1er jan 31 dec < 1607h):
@@ -26,17 +28,44 @@ class bdd (object):
      de la semaine 1 iso 8901, l
      en la complétant éventuellement
      à la dernière semaine.
-     2) connait tous les noms de classes de taches de verif 
+     2) connait tous les noms de classes de taches de verif
+     3) connait toutes les annees disponibles
+     4) connait tous les fichiers de postes manuels disponibles
+     5) connait tous les fichiers de fiches de paye manuels disponibles
+     
    
      """
     import calendar
     import calendrierComptable
+    
 
     def __init__(self):
         self.setListeNomsEtapesVerificationMensuelle()
+        self.realdb = realdb()
 
         #self.cal = calendar.Calendar()
         pass
+
+    def iterFichiersPostes(self):
+        import re
+        import os
+        genfichiers = (f for f in os.listdir('.') if re.match(r'postes[0-9]{4}\.txt', f) )
+        return genfichiers
+
+    def iterLignesFichiersPostes(self):
+        for f in self.iterFichiersPostes():
+            with open(f, 'r') as fichierCourant:
+                for ligne in fichierCourant:
+                    yield ligne
+
+
+    def saisirToutesEntrees(self, iterateurEntrees):
+        self.realdb.saisirToutesEntrees(iterateurEntrees)
+        
+        
+                
+
+
 
         
 
@@ -97,31 +126,26 @@ Exception("not implemented") """
     def getListeEtapesVerificationMensuelle(self):
         """ doit renvoyer les etapes instanciees avec des valeurs par defaut"""
         return self.listeEtapesVerificationMensuelle
-        
-
-        
-        
-        
-
-
-
-        
 
     
-
-
-
-
-    
-
-
         
-        
+
         
     def getPostes (self,name):
         
         if name == "all":
             return realdb().getAllPostes()
+
+    def iterAllPostes(self):
+        return realdb().iterAllPostes()
+
+    def iterAnneesDispo(self):
+        """realisation de 3)
+doit renvoyer les annees uniques disponibles dans la base
+préconditions:
+- besoin d'une connexion à la base ou déléguer à bdd donc récupérer un trigger
+de requete à la db donc le récup d'un tuple donc le transfo en champ"""
+        return realdb().iterAnneesDispo()
             
       
 
@@ -171,6 +195,28 @@ class realdb (object):
         # structure
         #self.cnx = "" # initialise par setCnx
         self.setCnx()
+
+    def saisirToutesEntrees(self, iterateurEntrees):
+        """saisit toutes les entrees dans la base"""
+        texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
+        for entree in iterateurEntrees:
+##        for entree in self.gen_dico_entree_ite():
+##            print("ecriture de ", entree.getDebutPoste(),entree.getFinPoste(), entree.getNomPoste(), entree.getCategorie())
+##            self.getDb().getCnx().execute(self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree'),
+##                                          (entree.getDebutPoste(),
+##                                           entree.getFinPoste(),
+##                                           entree.getNomPoste(),
+##                                           entree.getCategorie()
+##                                           )
+##                                          )
+##        
+##
+##            self.getDb().getCnx().commit()
+##            print("ecriture commitée")
+            print("ecriture de ", entree),
+            self.getCnx().execute(texterequete, entree)
+        self.getCnx().commit()
+        
 
     def setBibliothecaireDba(self):
         """initialise un bibliothecaire. le lie a l objet realdb"""
@@ -247,8 +293,11 @@ leurs contraintes"""
         db = self.getFichierDb()
         param1 = sqlite3.PARSE_DECLTYPES
         param2 = sqlite3.PARSE_COLNAMES
+        # autocommit.... pas touche pour l instant
+        #isolation_level = None
         masque_options = param1 | param2
-        self.cnx = sqlite3.connect(db, masque_options)
+        #self.cnx = sqlite3.connect(db,isolation_level, masque_options)
+        self.cnx = sqlite3.connect(db,masque_options)
 
     def TestAttributCnxExisteEtCnxOuverte(self):
         """doit provoquer un attributError si self.cnx existe pas et un sqlite.programmingError si la cnx est fermée. ne sert à rien d autre"""
@@ -297,12 +346,29 @@ leurs contraintes"""
         self.setCnx()
         return self.cnx
 
+    def getCursor(self):
+        """renvoie un objet iterable sur les resultats
+    d une requete"""
+        return self.getCnx().cursor()
+
     def setSchemaDb(self):
         """cree la structure de la base si elle n existe pas"""
         print("creation du schemas")
         self.getCnx().execute(
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_tables')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('creer_table_joursTravailles')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('creer_tables_periodesTravaillees')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('creer_trigger_ajout_jourstravailles_et_periodestravaillees')
             )
         print("schemas doit maintenant etre cree")
                               
@@ -316,6 +382,23 @@ sans retraitement"""
         	self.getBibliothecaireDba()
                 .getRequeteLectureByName('tous_postes')
                 ).fetchall()
+
+    def renvoyerCurseurRequeteLecture(self,requete):
+        """renvoyer le curseur pour une requete
+select fournit un o iterable sur une requete
+sans faire un fetchone qui renvoie un resultat """
+        return self.getCursor().execute(requete)
+
+    def iterAllPostes(self):
+        """renvoie un iterateur sur la requete tous postes
+        moins lourd à l exe que getAllPostes normalement"""
+        texterequete = self.getBibliothecaireDba().getRequeteLectureByName('tous_postes')
+        return self.renvoyerCurseurRequeteLecture(texterequete)
+
+    def iterAnneesDispo(self):
+        """renvoie un iterateur aux annees disponibles"""
+        texterequete = self.getBibliothecaireDba().getRequeteLectureByName('annees_dispo')
+        return self.renvoyerCurseurRequeteLecture(texterequete)
     
 
 class bibliothecaire_dba (object):
@@ -349,6 +432,8 @@ class bibliothecaire_dba (object):
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
             # car déjà fourni
             # sinon ben def converter_timestamp, sqlite3.register_converter("timestamp", converter_timestamp)
+
+            self.dicorequetes['lecture'].setdefault('annees_dispo','''SELECT DISTINCT strftime("%Y",debut_poste) from planning''')
             
             self.dicorequetes['lecture'].setdefault('tous_postes',
                                                     """SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]', nom_poste, categorie_poste from """
@@ -360,19 +445,102 @@ class bibliothecaire_dba (object):
                                                      + """WHERE  d > ?  AND f <= ?""", "" )
                                                     )
             self.dicorequetes['crea'].setdefault('creer_tables',
-                                                 "CREATE TABLE {} ( debut_poste TEXT, fin_poste TEXT, nom_poste TEXT, categorie_poste TEXT, CONSTRAINT debut_unique UNIQUE (debut_poste), CONSTRAINT fin_unique UNIQUE (fin_poste))".format(nom_table_liste_postes)
+                                                 '''CREATE TABLE {} (
+                                                    debut_poste TEXT,
+                                                    fin_poste TEXT,
+                                                    nom_poste TEXT,
+                                                    categorie_poste TEXT,
+                                                    CONSTRAINT debut_unique UNIQUE (debut_poste),
+                                                    CONSTRAINT fin_unique UNIQUE (fin_poste))'''
+                                                 .format(nom_table_liste_postes)
                                                  )
 
             self.dicorequetes['crea'].setdefault('creer_tables_datetimeexperimentalsqlite3',
-                                                 "CREATE TABLE {} ( debut_poste timestamp, fin_poste timestamp, nom_poste TEXT, categorie_poste TEXT, CONSTRAINT debut_unique UNIQUE (debut_poste), CONSTRAINT fin_unique UNIQUE (fin_poste))".format(nom_table_liste_postes)
+                                                 '''CREATE TABLE {}(
+                                                        debut_poste timestamp,
+                                                        fin_poste timestamp,
+                                                        nom_poste TEXT,
+                                                        categorie_poste TEXT,
+                                                        CONSTRAINT debut_unique UNIQUE (debut_poste),
+                                                        CONSTRAINT fin_unique UNIQUE (fin_poste))
+                                                        ;'''
+                                                 .format(nom_table_liste_postes)
                                                  )
+
+            # cette requete cree la table de JoursTravailles et la table de periodes_travaillees et ajoute le triger de creation de ces champs
+            self.dicorequetes['crea'].setdefault('creer_table_joursTravailles',
+                                                 '''CREATE TABLE jours_travailles (
+                                                    jour TEXT,
+                                                    CONSTRAINT jour_unique UNIQUE(jour) ON CONFLICT IGNORE
+                                                    )
+                                                    ;''')
+            self.dicorequetes['crea'].setdefault('creer_tables_periodesTravaillees',
+                                                 '''CREATE TABLE periodes_travaillees (
+                                                    debut_periode TEXT,
+                                                    fin_periode TEXT CHECK(fin_periode > debut_periode),
+                                                    jourtravaille TEXT,
+                                                    FOREIGN KEY (jourtravaille) REFERENCES joursTravailles(jour),
+                                                    CONSTRAINT periode_unique UNIQUE(debut_periode, fin_periode, jourtravaille) 
+                                                    )
+                                                    ;''')
+
+            self.dicorequetes['crea'].setdefault('creer_trigger_ajout_jourstravailles_et_periodestravaillees',
+                                                 """CREATE TRIGGER
+                                                    ajoutperiodestravtrig
+                                                    AFTER
+                                                        INSERT ON
+                                                        planning
+                                                    WHEN NEW.categorie_poste = 'travaillé'
+                                                    BEGIN
+                                                        INSERT OR IGNORE INTO
+                                                            jours_travailles (jour)
+                                                        SELECT date(NEW.debut_poste) UNION SELECT date(NEW.fin_poste)
+                                                        
+                                                        ;
+
+                                                        INSERT INTO
+                                                            periodes_travaillees (debut_periode, fin_periode, jourtravaille)
+                                                        SELECT
+                                                            NEW.debut_poste,
+
+                                                            CASE
+                                                                WHEN
+                                                                    date(NEW.fin_poste)
+                                                                    >
+                                                                    date(NEW.debut_poste)
+                                                                THEN datetime(date(NEW.debut_poste,'+1day'))
+                                                                ELSE NEW.fin_poste
+                                                            END fin_periode,
+                                                            date(NEW.debut_poste)
+                                                            FROM planning
+                                                           ;
+                                                           
+                                                        INSERT INTO
+                                                            periodes_travaillees (debut_periode, fin_periode, jourtravaille)
+                                                        SELECT
+                                                            CASE
+                                                                WHEN
+                                                                    date(NEW.fin_poste)
+                                                                    >
+                                                                    date(NEW.debut_poste)
+                                                                THEN datetime(date(NEW.debut_poste,'+1day'))
+                                                                ELSE NEW.debut_poste
+                                                            END debut_periode,
+                                                            NEW.fin_poste
+                                                            date(NEW.fin_poste)
+                                                            FROM planning
+                                                           ;
+                                                                                                                ;
+                                                        END;
+                                                    """)
+            # a chaque creation de poste
             
 
             # cette premiere version de saisie nécessite l utilisation de liste comme champ de saisie en deuxieme parma de execute(sql, liste)
             # la nature des champs dans la db dépoend donc de l ordre ds lequ les elements st jectes ds la liste python
             # bof
             self.dicorequetes['ecriture'].setdefault('saisir_entree',
-                                                     "INSERT INTO " + nom_table_liste_postes + " (debut_poste, fin_poste, nom_poste, categorie_poste) VALUES (?, ?, ?, ?)")
+                                                     "INSERT OR IGNORE INTO " + nom_table_liste_postes + " (debut_poste, fin_poste, nom_poste, categorie_poste) VALUES (?, ?, ?, ?)")
 
             #cette variante de saisie permet d utiliser des dicos comme champs de saisie en deuxieme parametre de execute(sql, dico)
             # la nature des champs ds la db depend donc de leur nom dans le dico python, donc mieux
@@ -416,92 +584,6 @@ class bibliothecaire_dba (object):
             return self.getRequeteTypedByName('ecriture', nom)
 
 
-class Entree(object):
-    
-    """{'day': 13, 'month': 12, 'year': 2014, 'poste': 'P1'}
-une entree est une a deux dates et un un type de pose et
-une categorie de poste il a la responsabilite de renvovyer une representation
-exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees"""
-    import constantes
-    import datetime
-    def __init__(self,ligne_poste):
-        self.ligne_poste = ligne_poste
-        self.setNomPoste()
-        self.setDebutPoste()
-        self.setFinPoste()
-        self.setCategorie()
-
-    def getLignePoste(self):
-        return self.ligne_poste
-
-    def getYear(self):
-        return self.getLignePoste()['year']
-
-    def getMonth(self):
-        return self.getLignePoste()['month']
-
-    def getDay(self):
-        return self.getLignePoste()['day']
-
-    def setNomPoste(self):
-        self.nom_poste = self.getLignePoste()['poste']
-
-    def getNomPoste(self):
-        return self.nom_poste
-
-    def getHeureDebut(self):
-        return self.constantesGetHeureDebutFromNomPoste(self.getNomPoste())
-
-    def constantesGetHeureDebutFromNomPoste(self,nomposte):
-        import constantes
-        return constantes.postes[nomposte]['heure_debut']
-
-    def setDebutPoste(self):
-        import datetime
-        
-        date_debut_poste = datetime.date(
-            self.getYear(),
-            self.getMonth(),
-            self.getDay()
-            )                                        
-        heure_debut_poste = datetime.time(self.getHeureDebut())
-        self.debut_poste = datetime.datetime.combine(date_debut_poste,
-                                                     heure_debut_poste)
-    def getDebutPoste(self):
-        return self.debut_poste
-
-    def constantesGetDureeFromNomPoste(self,nomposte):
-        import constantes
-        return constantes.postes[nomposte]['duree']
-
-    def getDureePoste(self):
-        return self.constantesGetDureeFromNomPoste(self.getNomPoste())
-
-    def setFinPoste(self):
-        import datetime
-        self.fin_poste = self.getDebutPoste() + datetime.timedelta(hours = self.getDureePoste())
-
-    def getFinPoste(self):
-        return self.fin_poste
-
-    def setCategorie(self):
-        self.categorie = self.constantesGetCategorieFromNomPoste(self.getNomPoste())
-
-    def constantesGetCategorieFromNomPoste(self, nomposte):
-        import constantes
-        return constantes.postes[nomposte]['categ']
-
-    def getCategorie(self):
-        return self.categorie
-    
-    def representation(self):
-        return "{},{},{}, {}".format(self.getDebutPoste(), self.getFinPoste(), self.getNomPoste(), self.getCategorie())
-
-    def to_dict(self):
-        return { 'debut_poste' : self.getDebutPoste(), 'fin_poste' : self.getFinPoste(), 'nom_poste' : self.getNomPoste(), 'categorie' : self.getCategorie() }
-
-    
-        
 
         
 
@@ -510,186 +592,6 @@ exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees""
         
         
     
-class larbin (object):
-    """a la resp de
-    remplir la base de postes
-    depuis les fichiers texte
-    a la resp de remplir la base
-    de fiches de p reelles
-    a la resp de converting depuis la base les postes en journees trav
-    a la resp de remplir la base de journees travaillees
-    """
-    def __init__(self):
-        self.db = realdb()
-        self.bib = bibliothecaire_dba()
-
-    def getDb(self):
-        return self.db
-
-    def getBibliothecaireDba(self):
-        return self.bib
-    
-    def a_saisir(self):
-        import xpld
-        
-        fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
-        for fichier in fichiers_larbin:
-            with open(fichier) as f:
-                for ligne_fichier in f:
-                    for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
-                        print(Entree(ligne_poste).representation())
-
-    def a_saisir_test_dico(self):
-        import xpld
-        
-        fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
-        for fichier in fichiers_larbin:
-            with open(fichier) as f:
-                for ligne_fichier in f:
-                    for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
-                        print(Entree(ligne_poste).to_dict())
-
-    def gen_dico_entree_ite(self):
-        import xpld
-        
-        fichiers_larbin = ["2014.txt","2015.txt","2016.txt"]
-        for fichier in fichiers_larbin:
-            with open(fichier) as f:
-                for ligne_fichier in f:
-                    for ligne_poste in xpld.xpld().xplode_ite(ligne_fichier):
-                        yield Entree(ligne_poste)
-
-    def saisir(self):
-        for entree in self.gen_dico_entree_ite():
-            print("ecriture de ", entree.getDebutPoste(),entree.getFinPoste(), entree.getNomPoste(), entree.getCategorie())
-            self.getDb().getCnx().execute(self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree'),
-                                          (entree.getDebutPoste(),
-                                           entree.getFinPoste(),
-                                           entree.getNomPoste(),
-                                           entree.getCategorie()
-                                           )
-                                          )
-        
-
-            self.getDb().getCnx().commit()
-            print("ecriture commitée")
-
-
-    def test_saisir(self):
-        for entree in self.gen_dico_entree_ite():
-            print(entree.getDebutPoste(), entree.getFinPoste(), entree.getNomPoste(), entree.getCategorie())
-
-    def verifier_travail(self):
-        """verifie que le nombre de saisies dans la base n est pas nul"""
-        tuple_resultat = self.getDb().getCnx().execute(self.getBibliothecaireDba()
-                                    .getRequeteMetaByName('nombre_postes_saisis')
-                                    ).fetchone()
-        nb = tuple_resultat[0] #le nombre doit etre extrait du tuple
-        for member in tuple_resultat:
-            print("le nombre d elements de planning saisis est de : {}"
-                  .format(nb)
-                  )
-        if nb:  #vrai si non nul
-            return True
-        else:
-            return False
-        
-
-##Traceback (most recent call last):
-##  File "<pyshell#38>", line 1, in <module>
-##    a.saisir()
-##  File "C:\Users\Utilisateur\Documents\GitHub\python_planning\db.py", line 430, in saisir
-##    (entree.to_dict()['debut_poste'], entree.to_dict()['fin_poste'], entree.to_dict['nom_poste'],
-##TypeError: 'method' object is not subscriptable
-##>>> import sqlite3
-##>>> a = sqlite3.connect(":memory:")
-##>>> a.execute("create table essai (dt datetime)")
-##<sqlite3.Cursor object at 0x02326C60>
-##>>> a.commit()
-##>>> import datetime
-##>>> a = { le_datetime : datetime.datetime.now() }
-##Traceback (most recent call last):
-##  File "<pyshell#44>", line 1, in <module>
-##    a = { le_datetime : datetime.datetime.now() }
-##NameError: name 'le_datetime' is not defined
-##>>> a = { "le_datetime" : datetime.datetime.now() }
-##>>> a
-##{'le_datetime': datetime.datetime(2017, 4, 15, 9, 8, 19, 169198)}
-##>>> a = sqlite3.connect(":memory:")
-##>>> a.execute("create table essai (dt datetime)")
-##<sqlite3.Cursor object at 0x02326C20>
-##>>> a.commit()
-##>>> dico = { "le_datetime" : datetime.datetime.now() }
-##>>> a.execute("insert into essai values (dt =: le_datetime) ", dico)
-##Traceback (most recent call last):
-##  File "<pyshell#51>", line 1, in <module>
-##    a.execute("insert into essai values (dt =: le_datetime) ", dico)
-##sqlite3.OperationalError: unrecognized token: ":"
-##            
-        
 
     
 
-
-
-class Regle(object):
-    """ a la responsabilité:
-- de creer une regle sous forme de champ d init dans fpaie reelle
-- de creer un seuil
-- de calculer le delta
-- de chiffrer le delta
-"""
-
-
-    
-                
-                
-        
-    
-    
-
-
-
-class jourTravaille(object):
-    """ doit representer la pkus petite
-unite dont sont composees
-les semaines 39 (dc besoin num sem
-et num mois)
-et les annees annu (ts jrs depuis 1er 
-jan au 31 dec)
-liste de periodes de trav (deb fin)
-sur 24h
--connait le num de sem auquel il 
-appartient
--connait le num mois auquel il 
-appartient
-    		- connait le num annee ausuel il 
-    		appartient
-"""
-    
-    pass
-
-class semaineTravaillee(object):
-    """pour les 39h regroupe les jours
-travaillés de la semaine
-chaque semaine comporte 7 jours
-et doit etre rattachee a un mois.
-cas limite: la semaine a cheval 
-sur deux mois. doit elle etre rattachee
-au mois ou elle commence ou au mois ou elle
-se termine?
-1er cas alors il faut inclure la semaine
-de postes pas terminee au 31 dec
-et exclure la 1ere semaine de jan
-si elle est incomplete (commence pas par
-	lundi).
-2eme cas alors il faut inclure a la
-1ere semaine de janvier, incomplete,
-les jours de la dern sem de dec, incomplete
-en effet annee du 1er jan au 31 dec.
-donc exclusion des sem incomplete au 31
-de l annee en cours
-donc regul sur mois annee suivante
-donc regul prec rattache au mois de janvier
-"""
-    pass

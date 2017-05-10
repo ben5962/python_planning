@@ -1,0 +1,89 @@
+digraph G {
+        fontname = "Bitstream Vera Sans"
+        fontsize = 8
+
+        node [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+                shape = "record"
+        ]
+
+        edge [
+                fontname = "Bitstream Vera Sans"
+                fontsize = 8
+        ]
+
+// noeuds 
+Poste [ label = "{Poste |debut : Horodatage\l fin : Horodatage\l| }" ]
+Annee[ label = "{Annee\l}" ]
+AnneePaye [ label = "{AnneePaye\l | annee : Annee \l  | }" ]
+PosteContraint [ label = "{PosteContraint\l |debut : Horodatage\l fin : Horodatage\l|}" ]
+PlanningContraint [ label ="{PlanningContraint \l | debut : Horodatage \l fin: Horodatage \l | }" ]
+Horodatage [ label = "{Horodatage}"   ]
+Heure
+Mois
+JourMois
+
+
+// relation appartient a cardinalité 1
+edge [
+                label = "appartient à"
+                arrowhead = "odiamond"
+                headlabel = "       1"
+        ]
+  
+
+Annee -> Horodatage
+Heure -> Horodatage
+Mois -> Horodatage
+JourMois -> Horodatage
+
+
+// relation appartient a cardinalité 2
+edge  [         
+ label = "appartient à"
+                arrowtail = "odiamond"
+                headlabel = "       2"
+        ]
+
+Horodatage -> Poste
+Poste -> Planning
+Horodatage -> PosteContraint
+
+
+// relation appartient a cardinalité n
+edge  [         
+
+ label = "appartient à"
+                arrowtail = "odiamond"
+                headlabel = "       n"
+        ]
+
+PosteContraint -> PlanningContraint
+
+// relation appelle
+edge [ 
+label = "appelle"
+arrowhead = "normal"
+headlabel = " " 
+]
+
+
+
+
+// relation est une sorte de...
+
+edge [
+ label = "est_une_sorte_de" 
+arrowhead = "empty"
+]
+
+
+PosteComplet -> PosteContraint
+PosteTronqueDebut -> PosteContraint
+PosteTronqueFin -> PosteContraint
+
+AnneePaye -> PlanningContraint
+
+PlanningContraint -> "Planning"
+}

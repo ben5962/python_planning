@@ -164,7 +164,9 @@ class tacheVerificationHs39Mensuelle (PrincipeEtapeVerificationMensuelle):
         for bornes_semaine_debut, borne_semaine_fin in getBornesSemainesMoisComptable(self.getAnnee(),self.getMois()):
             seuil = Seuil(39,43,48)
             listeJourneesTravailles = bdd.getJourneesTravailles(debut=borne_semaine_debut, fin=borne_semaine_fin)
-            for liste
+            for liste in pouet:
+                # mis ca pour l err de syntaxe de pytddmon
+                pass
 
 
 class VerifierFichePaye(object):

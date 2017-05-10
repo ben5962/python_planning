@@ -1,22 +1,23 @@
 import auditeur
-import 
+import db
+from db import bdd
+import collections
 class boss(object):
     """decide sur quelle annee(s) l audit de fiche de paie sera
 lancee"""
 
-    def setAnnees(self, *annees):
-        if not hasattr(self, annees):
-            self.annees = []
-        self.annees = list(annees)
+    
 
-    def getAnnees(self):
-        if not hasattr(self,annees):
-            raise AttributeError("avant d appeler doit lancez setAnnees sinon self.annees existe pas")
-        else:
-            return self.annees
+    def iterAnnees(self):
+        """ renvoie de man iterative les annees dispo ds db"""
+        generateur = bdd.iterAnneesDisponibles()
+        if isinstance(generateur(), collections.Iterable):
+            return bdd.iterAnneesDisponibles()
+        
 
     def doit(self):
-        for annee in self.getAnnees():
+        for tuple_annee in self.iterAnnees():
+            annee = tuple_annee[0]
             p_et_g = auditeur.Auditeur(annee)
             p_et_g.auditer()
             

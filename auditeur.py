@@ -1,3 +1,4 @@
+from db import bdd
 class auditeur  (object):
     """a la rep de lancer sur l annee demandee
     une verif des fiches de paye mensuelles.
@@ -41,14 +42,18 @@ class auditeur  (object):
 pour l isntrant print. peut etre TODO logger.log"""
         print(chaine)
 
+    def iterMois(self):
+        month_range = range (1,13)
+        return month_range
+
     def _deleguer_travail_verif(self):
         month_range = range (1,13)
         
-        for month in month_range:
+        for month in self.iterMois():
             self.setMois(month)
             
             self.rapporter(self.renvoyer_entete_rapport())
-            for tache in self.getBdd().getListeNomsEtapesVerificationMensuelle():
+            for tache in self.getBdd().iterNomsEtapesVerificationMensuelle():
                 assistant_comptable = Larbin()
                 assistant_comptable.setAnnee(self.getAnnee())
                 assistant_comptable.setMois(self.getMois())

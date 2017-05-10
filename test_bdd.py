@@ -111,6 +111,32 @@ class testbdd(unittest.TestCase):
         self.assertEqual(table_trouvee, nom_table)
 
 
+    def test_DB_syntaxte_sql(self):
+        #item 313
+        # je veux vérifier la syntaxe d'un trigger
+        # afin qu a la création d un poste (debut_poste, fin_poste),
+        # le(s) JourTravaille(jourcalendaire) et periode_travaillee(deb, fin, jourcal)
+        # soient créés à la volée.
+        
+        # il faut donc vérifier la syntaxe d un trigger : TODO
+        
+        # si poste est à cheval sur deux jours, 
+        #    il faut saisir deux jourtravaille et deux periode_travaillee
+        #    sinon une de chaque.
+        # il faut mettre au point cette logique : TODO
+        #item 314
+        # il faut mettre un truc
+        pass
+        #item 315
+        #con = sqlite3.connect(':memory:')
+        #con = sqlite3.connect(':memory:')
+        #con.execute("create table postes (debut_poste TEXT, fin_poste TEXT);")
+        #con.execute('INSERT INTO postes(debut_poste, fin_poste) VALUES (datetime("2017-05-06 06:00:00"), datetime("2017-05-06  18:00:00")),(datetime("2017-05-07 18:00:00"), datetime("2017-05-08 06:00:00"));')
+        #con.commit()
+        #con.execute('select count(*) from postes;').fetchone()con.execute('create temp table DATES_UNIQUES( date_poste TEXT );')
+        #con.commit()
+
+
     def test_DOMAINE_annee_valide(self):
         #item 218
         import xpld

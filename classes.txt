@@ -1,0 +1,23 @@
+[AUDITEUR]
+iterVerifsMensuelles() yield VerifsMensuelles
+
+
+[verifsMensuelles]
+iterAnomaliesTaches()
+
+[/anomalietache/]
+getType()
+getMois()
+getAnnee()
+
+if type == 39h
+[anomalieTache39h]
+iterSemainesTravaillees()
+
+
+[semaineTravaillee]
+getNumerosemaine()
+getHeuresTravHebdo3943()
+getHeuresTravHebdo4348()
+getHeuresTravHebdoPLUSDE48()
+getHeuresRemunHebdo3943()
