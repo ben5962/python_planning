@@ -1,4 +1,4 @@
-from db import bdd
+
 class auditeur  (object):
     """a la rep de lancer sur l annee demandee
     une verif des fiches de paye mensuelles.
@@ -10,13 +10,29 @@ class auditeur  (object):
     mais pas mieux pour l instant.
     peut etre déplacer l instanciation dans auditeur? 
     """
-    def __init__(self,annee):
+    def __init__(self,annee,bdd=None):
         self.setAnnee(annee)
-        self.setBdd()
+        # l inst d' objet bdd() peut etre passée par un tiers, notamment boss
+        # comme cela une seule instance de bdd()
+        self.setBdd(bdd)
         
 
-    def setBdd(self):
-        self.bdd = bdd()
+
+    def setBdd(self,bdd):
+        if bdd is not None:
+            self.bdd = bdd
+        else:
+            from db import bdd
+            self.bdd = bdd()
+
+    def getBdd(self):
+        if hasattr(self,'bdd'):
+            return self.bdd
+        else:
+            self.setBdd()
+            return self.bdd        
+
+   
         
     def setAnnee(self, annee):
         self.annee = annee
@@ -24,8 +40,6 @@ class auditeur  (object):
     def getAnnee(self):
         return self.annee
         
-    def getBdd(self):
-        return self.bdd
 
     def setMois(self,mois):
         self.mois = mois

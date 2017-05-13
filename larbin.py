@@ -1,4 +1,4 @@
-import db
+
 from metier import Entree
 
 class larbin (object):
@@ -10,18 +10,26 @@ class larbin (object):
     a la resp de converting depuis la base les postes en journees trav
     a la resp de remplir la base de journees travaillees
     """
-    def __init__(self):
-        self.bdd = db.bdd()
+    def __init__(self,bdd=None):
+        self.setBdd()
+
+   
+
+
+    def setBdd(self,bdd):
+        if bdd is not None:
+            self.bdd = bdd
+        else:
+            from db import bdd
+            self.bdd = bdd()
 
     def getBdd(self):
-        return self.bdd
-        
+        if hasattr(self,'bdd'):
+            return self.bdd
+        else:
+            self.setBdd()
+            return self.bdd        
 
-##    def getDb(self):
-##        return self.db
-##
-##    def getBibliothecaireDba(self):
-##        return self.bib
     
     def a_saisir(self):
         import xpld

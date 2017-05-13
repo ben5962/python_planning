@@ -40,11 +40,25 @@ class bdd (object):
     
 
     def __init__(self):
-        self.setListeNomsEtapesVerificationMensuelle()
+        #self.setListeNomsEtapesVerificationMensuelle()
+        self.setRealDb()
+
+    def setRealDb(self):
         self.realdb = realdb()
 
-        #self.cal = calendar.Calendar()
+    def getRealDb(self):
+        #une  UNIQUE instance de RealDb()! 
+        if hasattr(self,'realdb'):
+            return self.realdb
+        else:
+            self.setRealDb()
+            return self.realdb
+
+        
         pass
+
+    def iterMonthNumber(self):
+        return range(1,13)
 
     def iterFichiersPostes(self):
         import re
@@ -134,10 +148,10 @@ Exception("not implemented") """
     def getPostes (self,name):
         
         if name == "all":
-            return realdb().getAllPostes()
+            return self.getRealDb().getAllPostes()
 
     def iterAllPostes(self):
-        return realdb().iterAllPostes()
+        return self.getRealDb().iterAllPostes()
 
     def iterAnneesDispo(self):
         """realisation de 3)
@@ -145,7 +159,7 @@ doit renvoyer les annees uniques disponibles dans la base
 préconditions:
 - besoin d'une connexion à la base ou déléguer à bdd donc récupérer un trigger
 de requete à la db donc le récup d'un tuple donc le transfo en champ"""
-        return realdb().iterAnneesDispo()
+        return self.getRealDb().iterAnneesDispo()
             
       
 
@@ -409,9 +423,12 @@ class bibliothecaire_dba (object):
         """
         def __init__(self):
             self.setDicoRequetes()
+
+        def getNomTablePlanning(self):
+            return "planning"
             
         def setDicoRequetes (self):
-            nom_table_liste_postes = "planning"
+            nom_table_liste_postes = self.getNomTablePlanning()
             self.dicorequetes = {}
             # les clefs existant pas provoquent des KeyErrors
             self.dicorequetes.setdefault('agregation', {})

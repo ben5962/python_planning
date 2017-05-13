@@ -1,5 +1,7 @@
 import xpld
 import constantes
+from db import bdd
+from itertools import islice
 """ je veux une fonction pour mon larbin
 - ouvrant un fichier texte,
 - explosant chaque ligne,
@@ -22,7 +24,8 @@ import constantes
 
         
 
-with open("2014.txt") as f:
+
+with open(next(bdd().iterFichiersPostes())) as f:
   for ligne in f:
     for ligne_poste in xpld.xpld().xplode_ite(ligne):
             print(ligne_poste)
