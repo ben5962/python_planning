@@ -1,4 +1,4 @@
-
+#-*-coding:utf8;-*-
 class auditeur  (object):
     """a la rep de lancer sur l annee demandee
     une verif des fiches de paye mensuelles.

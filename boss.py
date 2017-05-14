@@ -1,3 +1,4 @@
+#-*-coding:utf8;-*-
 import auditeur
 
 from db import bdd

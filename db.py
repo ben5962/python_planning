@@ -54,8 +54,35 @@ class bdd (object):
             self.setRealDb()
             return self.realdb
 
+    def valider(self):
+        self.getRealDb().valider()
+
         
-        pass
+    def verifier_travail_saisie_planning(self):
+        """verifie que le nombre de saisies dans la base n est pas nul"""
+        nombre_postes_saisis = self.getRealDb().getNombrePostesSaisis()
+        print("le nombre d elements de planning saisis est de : {}"
+              .format(nombre_postes_saisis)
+              )
+        if nombre_postes_saisis:  #vrai si non nul
+            return True
+        else:
+            return False
+
+    def verifier_travail_saisie_periodes_travaillees(self):
+        """verifie que le nombre de saisies dans la base n est pas nul"""
+        nombre_postes_saisis = self.getRealDb().getNombrePeriodesTravailleesSaisies()
+        print("le nombre d elements de planning saisis est de : {}"
+              .format(nombre_postes_saisis)
+              )
+        if nombre_postes_saisis:  #vrai si non nul
+            return True
+        else:
+            return False
+
+    
+
+        
 
     def iterMonthNumber(self):
         return range(1,13)
@@ -74,7 +101,10 @@ class bdd (object):
 
 
     def saisirToutesEntrees(self, iterateurEntrees):
-        self.realdb.saisirToutesEntrees(iterateurEntrees)
+        self.getRealDb().saisirToutesEntrees(iterateurEntrees)
+
+    def saisir_entree(self, tuple_entree):
+        self.getRealDb().saisir_entree(tuple_entree)
         
         
                 
@@ -210,25 +240,39 @@ class realdb (object):
         #self.cnx = "" # initialise par setCnx
         self.setCnx()
 
+
+    def getNombrePostesSaisis(self):
+        tuple_resultat = self.getCnx().execute(self.getBibliothecaireDba()
+                                    .getRequeteMetaByName('nombre_postes_saisis')
+                                    ).fetchone()
+        
+        nb = tuple_resultat[0] #le nombre doit etre extrait du tuple
+        return nb
+
+    
+    def getNombrePeriodesTravailleesSaisies(self):
+        tuple_resultat = self.getCnx().execute(self.getBibliothecaireDba()
+                                .getRequeteMetaByName('nombre_periodes_travaillees_saisies')
+                                ).fetchone()
+    
+        nb = tuple_resultat[0] #le nombre doit etre extrait du tuple
+        return nb
+
     def saisirToutesEntrees(self, iterateurEntrees):
         """saisit toutes les entrees dans la base"""
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
         for entree in iterateurEntrees:
-##        for entree in self.gen_dico_entree_ite():
-##            print("ecriture de ", entree.getDebutPoste(),entree.getFinPoste(), entree.getNomPoste(), entree.getCategorie())
-##            self.getDb().getCnx().execute(self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree'),
-##                                          (entree.getDebutPoste(),
-##                                           entree.getFinPoste(),
-##                                           entree.getNomPoste(),
-##                                           entree.getCategorie()
-##                                           )
-##                                          )
-##        
-##
-##            self.getDb().getCnx().commit()
-##            print("ecriture commitée")
             print("ecriture de ", entree),
             self.getCnx().execute(texterequete, entree)
+        self.getCnx().commit()
+
+    def saisir_entree(self, tuple_entree):
+        """ saisit 1 entree dans la base """
+        texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
+        print("ecriture de ", tuple_entree),
+        self.getCnx().execute(texterequete, tuple_entree)
+
+    def valider(self):
         self.getCnx().commit()
         
 
@@ -372,18 +416,23 @@ leurs contraintes"""
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_tables')
             )
+##        self.getCnx().execute(
+##            self.getBibliothecaireDba()
+##            .getRequeteCreaByName('creer_table_joursTravailles')
+##            )
         self.getCnx().execute(
             self.getBibliothecaireDba()
-            .getRequeteCreaByName('creer_table_joursTravailles')
+            .getRequeteCreaByName('creer_table_periodesTravaillees')
             )
+        
         self.getCnx().execute(
             self.getBibliothecaireDba()
-            .getRequeteCreaByName('creer_tables_periodesTravaillees')
+            .getRequeteCreaByName('creer_trig_aj_periode_trav_from_scission_poste')
             )
-        self.getCnx().execute(
-            self.getBibliothecaireDba()
-            .getRequeteCreaByName('creer_trigger_ajout_jourstravailles_et_periodestravaillees')
-            )
+##        self.getCnx().execute(
+##            self.getBibliothecaireDba()
+##            .getRequeteCreaByName('creer_trigger_ajout_jourstravailles_et_periodestravaillees')
+##            )
         print("schemas doit maintenant etre cree")
                               
     
@@ -445,6 +494,12 @@ class bibliothecaire_dba (object):
                                                        "SELECT COUNT(*) FROM "
                                                         + nom_table_liste_postes
                                                        )
+
+            self.dicorequetes['meta'].setdefault('nombre_periodes_travaillees_saisies',
+                                                 '''SELECT COUNT(*)
+                                                    FROM
+                                                    periodes_travaillees
+                                                    ;''')
             # convertisseur de texte vers timestamp existe par defaut. rend non nécessaire l ecriture d un convertisseur sqllite3->py
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
             # car déjà fourni
@@ -491,15 +546,48 @@ class bibliothecaire_dba (object):
                                                     CONSTRAINT jour_unique UNIQUE(jour) ON CONFLICT IGNORE
                                                     )
                                                     ;''')
-            self.dicorequetes['crea'].setdefault('creer_tables_periodesTravaillees',
+            self.dicorequetes['crea'].setdefault('creer_table_periodesTravaillees',
                                                  '''CREATE TABLE periodes_travaillees (
                                                     debut_periode TEXT,
                                                     fin_periode TEXT CHECK(fin_periode > debut_periode),
-                                                    jourtravaille TEXT,
-                                                    FOREIGN KEY (jourtravaille) REFERENCES joursTravailles(jour),
-                                                    CONSTRAINT periode_unique UNIQUE(debut_periode, fin_periode, jourtravaille) 
+                                                    jour_travaille TEXT,
+                                                    CONSTRAINT periode_unique UNIQUE(debut_periode, fin_periode, jour_travaille) 
                                                     )
                                                     ;''')
+
+            self.dicorequetes['crea'].setdefault('creer_trig_aj_periode_trav_from_scission_poste',
+                                                 '''CREATE TRIGGER t1 AFTER INSERT ON planning
+                                                    WHEN (( NEW.categorie_poste = 'travaillé') AND( date( NEW.debut_poste )  < date ( NEW.fin_poste )) )
+                                                    -- entrée à cheval sur deux jours,
+                                                    -- il faut la splitter avant insertion
+                                                    -- vers periode_travaillée
+                                                    BEGIN
+                                                    -- CONTRAT D INSERTION
+                                                    -- 1er insert : de debut_poste
+                                                    -- à fin(jour_calendaire(debut_poste))
+                                                    -- C26
+                                                    INSERT INTO
+                                                        periodes_travaillees (debut_periode, fin_periode, jour_travaille)
+                                                    VALUES (NEW.debut_poste,
+                                                            datetime(NEW.debut_poste, '+1 day','start of day'),
+                                                            date(NEW.debut_poste)
+                                                            )
+                                                    ;
+                                                     -- FIN DU 1ER INSERT C26
+                                                     -- CONTRAT D INSERTION
+                                                     -- 2eme insert: de fin(jour_calendaire(debut_poste)
+                                                     -- à fin_poste
+                                                     -- C27
+                                                     INSERT INTO
+                                                     periodes_travaillees
+                                                     (debut_periode, fin_periode, jour_travaille)
+                                                     VALUES (datetime(NEW.debut_poste, '+1 day', 'start of day'),
+                                                             NEW.fin_poste,
+                                                             date(NEW.fin_poste)
+                                                             )
+                                                    ; -- FIN DE 2EME INSERT C27
+                                                    END; --fin du trigger ''')
+            self.dicorequetes['crea'].setdefault('creer_trig_aj_periode_trav_from_copy_poste',''' ''')
 
             self.dicorequetes['crea'].setdefault('creer_trigger_ajout_jourstravailles_et_periodestravaillees',
                                                  """CREATE TRIGGER
