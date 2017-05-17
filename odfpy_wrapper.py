@@ -29,6 +29,7 @@ class Rapport(object):
     def creerTableau(self,nb_colonnes):
         t = Table()
         self.ajouterFilsA(t,self._creerNColTableau(nb_colonnes))
+        self.nb_colonnes = nb_colonnes
         return t
 
     def tbl(self,nbcol):
@@ -83,6 +84,15 @@ class Rapport(object):
         c = self.creerCellule(texte, **kwargs)
         self.ajouterFilsA(pere=ligne, fils=c)
 
+    def tranche(self, ligne, liste=None):
+        if liste is None:
+            i = 1
+            while i < self.nb_colonnes:
+                self.cell("", ligne)
+        else:
+            for elem in liste:
+                self.cell(elem, ligne)
+
     def finligne(self,ligne,tableau):
         """rattache la ligne au tableau parce que je ne crois pas
         que le rattachement direct au tableau fonctionne"""
@@ -107,6 +117,10 @@ class Rapport(object):
         - 2 cellules recouvertes
         la cellule recouverte c'est une covered..."""
         return CoveredTableCell()
+
+    def texteLibre(self,texte):
+        """ajouter un P libre"""
+        self.ajouterFilsA(pere=self.getDocument().text,fils=P(text=texte))
 
     def ajouterFilsA(self,pere,fils):
         pere.addElement(fils)

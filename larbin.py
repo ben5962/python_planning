@@ -11,6 +11,8 @@ class larbin (object):
     3) a la resp de convertir depuis la base les postes en journees trav
     -> fait (délégué au trigger)
     4) a la resp de remplir la base de journees travaillees
+    l = larbin()
+    l.saisir()
     """
     def __init__(self,bdd=None):
         self.setBdd(bdd)

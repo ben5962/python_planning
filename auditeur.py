@@ -8,7 +8,12 @@ class auditeur  (object):
     il faut modifier la valeur de annees et de mois de etapeverif au runtime.
     pas tres tres malin car instanciation à deux endroits
     mais pas mieux pour l instant.
-    peut etre déplacer l instanciation dans auditeur? 
+    peut etre déplacer l instanciation dans auditeur?
+
+
+
+    mode emploi: a = auditeur(annee) ou a = auditeur(annee, inst_de_bdd)
+    a.auditer()
     """
     def __init__(self,annee,bdd=None):
         self.setAnnee(annee)
@@ -60,33 +65,58 @@ pour l isntrant print. peut etre TODO logger.log"""
         month_range = range (1,13)
         return month_range
 
-    def _deleguer_travail_verif(self):
-        month_range = range (1,13)
-        
-        for month in self.iterMois():
-            self.setMois(month)
-            
-            self.rapporter(self.renvoyer_entete_rapport())
-            for tache in self.getBdd().iterNomsEtapesVerificationMensuelle():
-                assistant_comptable = Larbin()
-                assistant_comptable.setAnnee(self.getAnnee())
-                assistant_comptable.setMois(self.getMois())
-                # assistant comptable va le saisir dans la bd des anomalies
-                assistant_comptable.setAnomalies(tache)
 
-    def _deleguer_travail_saisie(self):
-        secretaire = Secretaire()
-        secretaire.setAnnee(self.getAnnee())
-        secretaire.creerRapport()
-        for type_rapport in bdd.getTypesAnomalies(self.getAnnee()):
-            secretaire.setTypeRapport(type_rapport)
-            secretaire.ajouterAuRapport(self.getAnnee(),self.getTypeRapport())
-        secretaire.fermerRapport()       
-            
+    def setObjetRapport(self):
+        """met un objet rapport odf dansl e contexte commun
+        - parce  que plus pratique à manipuler"""
+        if self.getTypeSortie() == 'odf'
+            self.Rapport = odfpy_wrapper.Rapport(self.getNomFichierDestination())
+        if self.getTypeSortie() == 'text'
+            pass # trouver une representation arborescente à la con
+
+    def getObjetRapport(self):
+        return self.Rapport
+
+    def r(self):
+        return self.getRapport()
+
+##    def _deleguer_travail_verif(self):
+##        month_range = range (1,13)
+##        
+##        for month in self.iterMois():
+##            self.setMois(month)
+##            
+##            self.rapporter(self.renvoyer_entete_rapport())
+##            for tache in self.getBdd().iterNomsEtapesVerificationMensuelle():
+##                assistant_comptable = Larbin()
+##                assistant_comptable.setAnnee(self.getAnnee())
+##                assistant_comptable.setMois(self.getMois())
+##                # assistant comptable va le saisir dans la bd des anomalies
+##                assistant_comptable.setAnomalies(tache)
+##
+##    def _deleguer_travail_saisie(self):
+##        secretaire = Secretaire()
+##        secretaire.setAnnee(self.getAnnee())
+##        secretaire.creerRapport()
+##        for type_rapport in bdd.getTypesAnomalies(self.getAnnee()):
+##            secretaire.setTypeRapport(type_rapport)
+##            secretaire.ajouterAuRapport(self.getAnnee(),self.getTypeRapport())
+##        secretaire.fermerRapport()       
+    def setTypeSortie(self,chaine):
+        self.typeSortie = self.getBdd().creerTypeSortieParNom(chaine)
+
+    def getTypeSortie(self)
+        return self.typeSortie
 
     def auditer(self):
         """ lance les taches de verif de fiches de paye sur l annee"""
         # liste_annees = bdd.getListeAnneesDispo() # pour patron, ca.
+        self.setTypeSortie('odf')
+        self.setObjetRapport()
+        for NomTache in getBdd().iterNomTache(): 
+            t = self.getBdd().creerTypeTacheParNom(Nomtache, self.getTypeSortie(),self.getObjetRapport(), self.getAnnee()).ajouterAuRapport()
+        self.
+            
         self._deleguer_travail_verif()
         self._deleguer_travail_saisie()
 

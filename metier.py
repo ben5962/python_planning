@@ -3,6 +3,8 @@
 - jourTravaille
 
 et ce que je trouverai pertinent ensuite"""
+from dateutil.relativedelta import *
+from dateutil.parser import *
 class Entree(object):
     
     """{'day': 13, 'month': 12, 'year': 2014, 'poste': 'P1'}
@@ -92,7 +94,105 @@ exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees""
 
     
         
+class moisCalendaire(object):
+    """ le mois /d une annee/
+    fournit itérateur sur les numeros de semaines:
+     m = moisComptable(2014,1)
+     for s in m.iterSemainesHsup30():
+         print(s)
+    >>> (2013, 53)
+    >>> (2014, 1)
+    >>> (2014, 2)
+    >>> (2014, 3)"""
+    def __init__(self, annee, num_mois):
+        self.annee = annee
+        self.mois = num_mois
 
+    def iterSemainesHsup39(self):
+        import datetime
+        import calendar
+        cal = calendar.Calendar()
+        return ((semaine[0].isocalendar()[0],semaine[0].isocalendar()[1])
+                for semaine
+                in cal.monthdatescalendar(self.annee,self.mois)
+                if semaine[6] <= datetime.date(self.annee,
+                                               self.mois,
+                                               calendar.monthrange(self.annee,self.mois)[1]
+                                               )
+                )
+
+
+class semaineCalendaire(object):
+    """ les bornes en date d une semaine /d une annee/
+    fournit horodatage début et horodatage fin d une semaine:
+    s = semaineCalendaire(2010,25)
+    s.getHoroDebutEtHoroDebutSplus1BornantSemaine()
+    ou:
+    s = semaineCalendaire(2010,25).getBornesEnFrancais()
+    >>> (datetime.datetime(2010,6,4,0,0,0),datetime.datetime(2010,6,11,0,0,0)
+    la bornde de fin n est pas le dernier instant de la semaine mais
+    le premier instant de la semaine suivante afin de partitionner le mois
+    comptable"""
+    def __init__(self, annee, num_semaine):
+        self.annee = annee
+        self.num_semaine = num_semaine
+
+    def getHoroDebutEtHoroDebutSplus1BornantSemaine(self):
+        """ doit fournir bornes d une semaine"""
+        from datetime import datetime
+        #from dateutil.relativedelta import * #remonté au module
+        #from dateutil.parser import *        # remonté au module
+        debut = datetime(self.annee,1,1) + relativedelta(
+            day=4,  #la permiere SEMAINE ISO contient le 4 jan
+            weekday=MO(-1), # rembobiner jusqu'au premier lundi de cette semaine iso
+            weeks=+(self.num_semaine - 1)   # ajouter 19 semaines donc semaine 20
+            )
+        fin = debut + relativedelta(days=7)
+        return (debut, fin)
+
+    def getPremierEtDernierJourSemaine(self):
+        """doit fournir bornes d une semaine """
+        from datetime import timedelta
+        bornes = self.getHoroDebutEtHoroDebutSplus1BornantSemaine()
+        debut = bornes[0].date()
+        fin = bornes[1].date() - timedelta(days=1)
+        return (debut, fin)
+
+    def getBornesEnFrancais(self):
+        bornes = self.getHoroDebutEtHoroDebutSplus1BornantSemaine()
+        ch = ' '.join([
+            "du",
+            date_en_francais(bornes[0]),
+            "au",
+            date_en_francais(bornes[1])
+            ])
+        return ch
+
+def date_en_francais(la_date):
+    """convertit une datetime en chaine en francais"""
+    import locale
+    locale.setlocale(locale.LC_ALL,'fra')
+    import calendar
+    """lundi"""
+    nom_jour = calendar.day_name[
+        calendar.weekday(
+            la_date.year,
+            la_date.month,
+            la_date.day
+            )
+        ]
+    "22"
+    numero_ds_mois = str(la_date.day)
+    "mai"
+    nom_mois = calendar.month_name[la_date.month]
+    "2017"
+    annee = str(la_date.year)
+    heure = str(la_date.hour)
+    return ''.join([nom_jour," ", numero_ds_mois," ", nom_mois," ", annee, " ", heure, "h"])
+    
+        
+             
+ 
 
 class Regle(object):
     """ a la responsabilité:

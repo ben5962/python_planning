@@ -1,0 +1,455 @@
+Python 3.6.0 (v3.6.0:41df79263a11, Dec 23 2016, 07:18:10) [MSC v.1900 32 bit (Intel)] on win32
+Type "copyright", "credits" or "license()" for more information.
+>>> import sqlite4
+Traceback (most recent call last):
+  File "<pyshell#0>", line 1, in <module>
+    import sqlite4
+ModuleNotFoundError: No module named 'sqlite4'
+>>> import sqlite4
+Traceback (most recent call last):
+  File "<pyshell#1>", line 1, in <module>
+    import sqlite4
+ModuleNotFoundError: No module named 'sqlite4'
+>>> import sqlite3
+>>> con = sqlite3.connect(':memory:')
+>>> con.execute('CREATE TABLE testfor (int entier);')
+<sqlite3.Cursor object at 0x02332BE0>
+>>> con.commit()
+>>> con.execute('INSERT INTO testfor VALUES(1),(2),(3)')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con.commit()
+>>> for i in con.execute('select * from testfor'):
+	print(i)
+
+	
+(1,)
+(2,)
+(3,)
+>>> con2 = sqlite3.connect(':memory:')
+>>> con2.execute('create TABLE mouais (TEXT bof, int entier);')
+<sqlite3.Cursor object at 0x02332BE0>
+>>> con2.commit()
+>>> con2.execute('INSERT INTO mouais (bof, entier) SELECT "bof", (SELECT entier from testfor);')
+Traceback (most recent call last):
+  File "<pyshell#14>", line 1, in <module>
+    con2.execute('INSERT INTO mouais (bof, entier) SELECT "bof", (SELECT entier from testfor);')
+sqlite3.OperationalError: table mouais has no column named bof
+>>> con2.exectute('create table mouais( bof TEXT, entier INT);')
+Traceback (most recent call last):
+  File "<pyshell#15>", line 1, in <module>
+    con2.exectute('create table mouais( bof TEXT, entier INT);')
+AttributeError: 'sqlite3.Connection' object has no attribute 'exectute'
+>>> con2.execute('create table mouais( bof TEXT, entier INT);')
+Traceback (most recent call last):
+  File "<pyshell#16>", line 1, in <module>
+    con2.execute('create table mouais( bof TEXT, entier INT);')
+sqlite3.OperationalError: table mouais already exists
+>>> con2.execute('drop table mouais;')
+<sqlite3.Cursor object at 0x02332AE0>
+>>> con2.commit()
+>>> con2.execute('create table mouais( bof TEXT, entier INT);')
+<sqlite3.Cursor object at 0x02332BE0>
+>>> con2.commit()
+>>> con2.execute('INSERT INTO mouais (bof, entier) SELECT "bof", (SELECT entier from testfor);')
+Traceback (most recent call last):
+  File "<pyshell#21>", line 1, in <module>
+    con2.execute('INSERT INTO mouais (bof, entier) SELECT "bof", (SELECT entier from testfor);')
+sqlite3.OperationalError: no such table: testfor
+>>> for i in con.execute('select * from testfor'):
+	print(i)
+
+	
+(1,)
+(2,)
+(3,)
+>>> con2.execute('create table testfor(entier INT);')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.commit()
+>>> con2.execute('insert into testfor values (1), (2), (3)';)
+SyntaxError: invalid syntax
+>>> con2.execute('insert into testfor values (1), (2), (3);')
+<sqlite3.Cursor object at 0x02332BE0>
+>>> con2.commit()
+>>> con2.execute('select count(*) from testfor;')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.execute('select count(*) from testfor;').fetchall()
+[(3,)]
+>>> con2.execute('select count(*) from testfor;').fetchone()
+(3,)
+>>> con2.execute('INSERT INTO mouais (bof, entier) SELECT "bof", (SELECT entier from testfor);')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.commit()
+>>> con2.execute('select * from mouais').fetchall()
+[('bof', 1)]
+>>> con2.execute('insert INTO mouais (bof, entier) SELECT "bof", entier FROM testfor cross join entier;')
+Traceback (most recent call last):
+  File "<pyshell#35>", line 1, in <module>
+    con2.execute('insert INTO mouais (bof, entier) SELECT "bof", entier FROM testfor cross join entier;')
+sqlite3.OperationalError: no such table: entier
+>>> con2.execute('insert INTO mouais (bof, entier) SELECT bof, entier FROM (select "bof") cross join testfor;')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.commit()
+>>> con2.execute('select count(*) from mouais;').fetchone()
+(4,)
+>>> con2.execute('select * from mouais;').fetchall()
+[('bof', 1), ('bof', 1), ('bof', 2), ('bof', 3)]
+>>> con2.execute('create table postes (debut_poste TEXT, fin_poste TEXT);')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.commit()
+>>> con2.execute("insert into postes(datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');")
+Traceback (most recent call last):
+  File "<pyshell#42>", line 1, in <module>
+    con2.execute("insert into postes(datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');")
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('insert into postes(datetime(2017-05-04 18:00:00), datetime(2017-05-05 06:00:00);')
+Traceback (most recent call last):
+  File "<pyshell#43>", line 1, in <module>
+    con2.execute('insert into postes(datetime(2017-05-04 18:00:00), datetime(2017-05-05 06:00:00);')
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('insert into postes (debut_poste, fin_poste) values (datetime(2017-05-04 18:00:00), datetime(2017-05-05 06:00:00);')
+Traceback (most recent call last):
+  File "<pyshell#44>", line 1, in <module>
+    con2.execute('insert into postes (debut_poste, fin_poste) values (datetime(2017-05-04 18:00:00), datetime(2017-05-05 06:00:00);')
+sqlite3.OperationalError: near "18": syntax error
+>>> con2.execute('insert into postes (debut_poste, fin_poste) values ( datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');')
+SyntaxError: invalid syntax
+>>> con2.execute("insert into postes (debut_poste, fin_poste) values ( datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');")
+Traceback (most recent call last):
+  File "<pyshell#46>", line 1, in <module>
+    con2.execute("insert into postes (debut_poste, fin_poste) values ( datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');")
+sqlite3.OperationalError: near ";": syntax error
+>>> con2.execute("INSERT into postes (debut_poste, fin_poste) VALUES ( datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');")
+Traceback (most recent call last):
+  File "<pyshell#47>", line 1, in <module>
+    con2.execute("INSERT into postes (debut_poste, fin_poste) VALUES ( datetime('2017-05-04 18:00:00'), datetime('2017-05-05 06:00:00');")
+sqlite3.OperationalError: near ";": syntax error
+>>> con2.execute('INSERT into postes (debut_poste, fin_poste) VALUES ( datetime("2017-05-04 18:00:00"), datetime("2017-05-05 06:00:00");')
+Traceback (most recent call last):
+  File "<pyshell#48>", line 1, in <module>
+    con2.execute('INSERT into postes (debut_poste, fin_poste) VALUES ( datetime("2017-05-04 18:00:00"), datetime("2017-05-05 06:00:00");')
+sqlite3.OperationalError: near ";": syntax error
+>>> con2.execute('INSERT INTO postes (debut_poste, fin_poste) VALUES ( datetime(2017-05-04 18:00:00), datetime(2017-05-05 06:00:00);')
+Traceback (most recent call last):
+  File "<pyshell#49>", line 1, in <module>
+    con2.execute('INSERT INTO postes (debut_poste, fin_poste) VALUES ( datetime(2017-05-04 18:00:00), datetime(2017-05-05 06:00:00);')
+sqlite3.OperationalError: near "18": syntax error
+>>> con2.execute('INSERT INTO postes (debut_poste, fin_poste) VALUES ( datetime("2017-05-04 18:00:00"), datetime("2017-05-05 06:00:00"));')
+<sqlite3.Cursor object at 0x02332D20>
+>>> con2.commit()
+>>> con2.execute('select * from postes;').fetchall()
+[('2017-05-04 18:00:00', '2017-05-05 06:00:00')]
+>>> con2.execute('INSERT INTO postes (debut_poste, fin_poste) VALUES (datetime("2017-05-06 06:00:00"), datetime("2017-05-06 18:00:00"));')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.commit()
+>>> con2.execute('select * from postes;').fetchall()
+[('2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-06 06:00:00', '2017-05-06 18:00:00')]
+>>> con2.execute('select date(postes.debut_poste) from postes;')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.execute('select date(postes.debut_poste) from postes;').fetchall()
+[('2017-05-04',), ('2017-05-06',)]
+>>> con2.execute('select datetime(date(postes.debut_poste)) from postes;').fetchall()
+[('2017-05-04 00:00:00',), ('2017-05-06 00:00:00',)]
+>>> con2.execute('create temp table  periodes_travaillees (jour_travaille, horo_debut ,horo_fin);')
+<sqlite3.Cursor object at 0x02332CA0>
+>>> con2.execute('SELECT DISTINCT (SELECT date(postes.debut) FROM postes UNION SELECT date(postes.fin) FROM postes));').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#60>", line 1, in <module>
+    con2.execute('SELECT DISTINCT (SELECT date(postes.debut) FROM postes UNION SELECT date(postes.fin) FROM postes));').fetchall()
+sqlite3.OperationalError: near ")": syntax error
+>>> con2.execute('SELECT date(postes.debut) FROM postes UNION SELECT date(postes.fin) FROM postes);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#61>", line 1, in <module>
+    con2.execute('SELECT date(postes.debut) FROM postes UNION SELECT date(postes.fin) FROM postes);').fetchall()
+sqlite3.OperationalError: near ")": syntax error
+>>> con2.execute('SELECT date(postes.debut_poste) FROM postes UNION SELECT date(postes.fin_poste) FROM postes);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#62>", line 1, in <module>
+    con2.execute('SELECT date(postes.debut_poste) FROM postes UNION SELECT date(postes.fin_poste) FROM postes);').fetchall()
+sqlite3.OperationalError: near ")": syntax error
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#63>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes);').fetchall()
+sqlite3.OperationalError: near ")": syntax error
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;').fetchall()
+[('2017-05-04',), ('2017-05-05',), ('2017-05-06',)]
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;').fetchall()
+[('2017-05-04',), ('2017-05-05',), ('2017-05-06',)]
+>>> con2.execute('select (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste INNER JOIN poste on (pouet = date(poste.debut_poste) OR  pouet = date(poste.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#66>", line 1, in <module>
+    con2.execute('select (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste INNER JOIN poste on (pouet = date(poste.debut_poste) OR  pouet = date(poste.fin_poste))').fetchall()
+sqlite3.OperationalError: near "INNER": syntax error
+>>> con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste INNER JOIN poste on (pouet = date(poste.debut_poste) OR  pouet = date(poste.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#67>", line 1, in <module>
+    con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste INNER JOIN poste on (pouet = date(poste.debut_poste) OR  pouet = date(poste.fin_poste))').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste FROM poste INNER JOIN poste on (pouet = date(poste.debut_poste) OR  pouet = date(poste.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#68>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste FROM poste INNER JOIN poste on (pouet = date(poste.debut_poste) OR  pouet = date(poste.fin_poste))').fetchall()
+sqlite3.OperationalError: no such table: poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#69>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#70>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste, fin_poste FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, postes.debut_poste, postes.fin_poste FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#71>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, postes.debut_poste, postes.fin_poste FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+sqlite3.OperationalError: ambiguous column name: postes.debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, postes.debut_poste as d, postes.fin_poste as f FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#72>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, postes.debut_poste as d, postes.fin_poste as f FROM postes INNER JOIN postes on (pouet = date(postes.debut_poste) OR  pouet = date(postes.fin_poste))').fetchall()
+sqlite3.OperationalError: ambiguous column name: postes.debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, postes.debut_poste as d, postes.fin_poste as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#73>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, postes.debut_poste as d, postes.fin_poste as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+sqlite3.OperationalError: ambiguous column name: postes.debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste as d, fin_poste as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#74>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, debut_poste as d, fin_poste as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetim(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#75>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetim(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetim(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#76>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetim(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#77>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(postes.debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#78>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(postes.debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes on (pouet = date(d) OR  pouet = date(f))').fetchall()
+sqlite3.OperationalError: ambiguous column name: postes.debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(postes.debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#79>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(postes.debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()
+sqlite3.OperationalError: ambiguous column name: postes.debut_poste
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()sqlite3.OperationalError: ambiguous column name: postes.debut_poste
+SyntaxError: invalid syntax
+>>> con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#81>", line 1, in <module>
+    con2.execute('SELECT (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()
+sqlite3.OperationalError: ambiguous column name: debut_poste
+>>> con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#82>", line 1, in <module>
+    con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet, datetime(debut_poste) as d, datetime(fin_poste) as f FROM postes INNER JOIN postes ON pouet = date(d)').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet INNER JOIN postes ON pouet = date(debut_poste)').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#83>", line 1, in <module>
+    con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet INNER JOIN postes ON pouet = date(debut_poste)').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet INNER JOIN postes ON pouet = date(debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#84>", line 1, in <module>
+    con2.execute('(SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes) as pouet INNER JOIN postes ON pouet = date(debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes as pouet INNER JOIN postes ON pouet = date(debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#85>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes as pouet INNER JOIN postes ON pouet = date(debut_poste);').fetchall()
+sqlite3.OperationalError: ambiguous column name: fin_poste
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes as pouet INNER JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#86>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes as pouet INNER JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+sqlite3.OperationalError: ambiguous column name: fin_poste
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(postes.fin_poste) FROM postes as pouet INNER JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#87>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(postes.fin_poste) FROM postes as pouet INNER JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+sqlite3.OperationalError: no such column: pouet
+>>> con2.execute('SELECT date(debut_poste) FROM postes p UNION SELECT date(postes.fin_poste) FROM postes p as "pouet" INNER JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#88>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM postes p UNION SELECT date(postes.fin_poste) FROM postes p as "pouet" INNER JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+sqlite3.OperationalError: near "as": syntax error
+>>> con2.execute('(SELECT date(j.debut_poste) FROM postes j UNION SELECT date(j.fin_poste) FROM postes j) as pouet INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#89>", line 1, in <module>
+    con2.execute('(SELECT date(j.debut_poste) FROM postes j UNION SELECT date(j.fin_poste) FROM postes j) as pouet INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(j.fin_poste) FROM postes j) as pouet INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#90>", line 1, in <module>
+    con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(j.fin_poste) FROM postes j) as pouet INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "INNER": syntax error
+>>> con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(j.fin_poste) FROM postes j) AS "pouet" INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#91>", line 1, in <module>
+    con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(j.fin_poste) FROM postes j) AS "pouet" INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "INNER": syntax error
+>>> con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS "pouet" INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#92>", line 1, in <module>
+    con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS "pouet" INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "INNER": syntax error
+>>> con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS "pouet INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#93>", line 1, in <module>
+    con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS "pouet INNER JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: unrecognized token: ""pouet INNER JOIN postes p ON pouet = date(p.debut_poste);"
+>>> con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#94>", line 1, in <module>
+    con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "JOIN": syntax error
+>>> con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#95>", line 1, in <module>
+    con2.execute('select (SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "JOIN": syntax error
+>>> con2.execute('(SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#96>", line 1, in <module>
+    con2.execute('(SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('(SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#97>", line 1, in <module>
+    con2.execute('(SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#98>", line 1, in <module>
+    con2.execute('SELECT date(j.debut_poste) FROM postes j UNION SELECT date(k.fin_poste) FROM postes k AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "AS": syntax error
+>>> con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#99>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: ambiguous column name: fin_poste
+>>> con2.execute('SELECT date(debut_poste) FROM d1postes UNION SELECT date(fin_poste) FROM postes AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#100>", line 1, in <module>
+    con2.execute('SELECT date(debut_poste) FROM d1postes UNION SELECT date(fin_poste) FROM postes AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: no such table: d1postes
+>>> con2.execute('SELECT date(d1.debut_poste) FROM postes d1 UNION SELECT date(d2.fin_poste) FROM postes d2 AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#101>", line 1, in <module>
+    con2.execute('SELECT date(d1.debut_poste) FROM postes d1 UNION SELECT date(d2.fin_poste) FROM postes d2 AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "AS": syntax error
+>>> con2.execute('(SELECT date(d1.debut_poste) FROM postes d1 UNION SELECT date(d2.fin_poste) FROM postes d2) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#102>", line 1, in <module>
+    con2.execute('(SELECT date(d1.debut_poste) FROM postes d1 UNION SELECT date(d2.fin_poste) FROM postes d2) AS pouet JOIN postes p ON pouet = date(p.debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('create temp d_uniques as (select date(debut_poste) from postes UNION select date(fin_poste) from postes);')
+Traceback (most recent call last):
+  File "<pyshell#103>", line 1, in <module>
+    con2.execute('create temp d_uniques as (select date(debut_poste) from postes UNION select date(fin_poste) from postes);')
+sqlite3.OperationalError: near "d_uniques": syntax error
+>>> con2.execute('create temp table d_uniques as (select date(debut_poste) from postes UNION select date(fin_poste) from postes);')
+Traceback (most recent call last):
+  File "<pyshell#104>", line 1, in <module>
+    con2.execute('create temp table d_uniques as (select date(debut_poste) from postes UNION select date(fin_poste) from postes);')
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('(SELECT date(d1.debut_poste) FROM postes as d1 UNION SELECT date(d2.fin_poste) FROM postes as d2) AS pouet JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#105>", line 1, in <module>
+    con2.execute('(SELECT date(d1.debut_poste) FROM postes as d1 UNION SELECT date(d2.fin_poste) FROM postes as d2) AS pouet JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('(SELECT date(d1.debut_poste) FROM postes as d1 UNION SELECT date(d2.fin_poste) FROM postes as d2) pouet JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#106>", line 1, in <module>
+    con2.execute('(SELECT date(d1.debut_poste) FROM postes as d1 UNION SELECT date(d2.fin_poste) FROM postes as d2) pouet JOIN postes ON pouet = date(postes.debut_poste);').fetchall()
+sqlite3.OperationalError: near "(": syntax error
+>>> 
+>>> con2.execute('create temp table DATES_UNIQUES (du DATE) AS (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes);')
+Traceback (most recent call last):
+  File "<pyshell#108>", line 1, in <module>
+    con2.execute('create temp table DATES_UNIQUES (du DATE) AS (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes);')
+sqlite3.OperationalError: near "AS": syntax error
+>>> con2.execute('create temp table DATES_UNIQUES AS (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes);')
+Traceback (most recent call last):
+  File "<pyshell#109>", line 1, in <module>
+    con2.execute('create temp table DATES_UNIQUES AS (SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes);')
+sqlite3.OperationalError: near "(": syntax error
+>>> con2.execute('create temp table DATES_UNIQUES AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+<sqlite3.Cursor object at 0x0223A820>
+>>> con2.commit()
+>>> con2.execute('select * from DATES_UNIQUES;').fetchall()
+[('2017-05-04',), ('2017-05-05',), ('2017-05-06',)]
+>>> con2.execute('create temp table DATES_UNIQUES(date_poste) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+Traceback (most recent call last):
+  File "<pyshell#113>", line 1, in <module>
+    con2.execute('create temp table DATES_UNIQUES(date_poste) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+sqlite3.OperationalError: table DATES_UNIQUES already exists
+>>> con2.execute('drop table DATES_UNIQUES;')
+<sqlite3.Cursor object at 0x0223A820>
+>>> con2.commit()
+>>> con2.execute('create temp table DATES_UNIQUES(date_poste) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+Traceback (most recent call last):
+  File "<pyshell#116>", line 1, in <module>
+    con2.execute('create temp table DATES_UNIQUES(date_poste) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+sqlite3.OperationalError: near "AS": syntax error
+>>> con2.execute('create temp table DATES_UNIQUES(date_poste TEXT) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+Traceback (most recent call last):
+  File "<pyshell#117>", line 1, in <module>
+    con2.execute('create temp table DATES_UNIQUES(date_poste TEXT) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+sqlite3.OperationalError: near "AS": syntax error
+>>> con2.execute('create temp table DATES_UNIQUES(date_poste DATE) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+Traceback (most recent call last):
+  File "<pyshell#118>", line 1, in <module>
+    con2.execute('create temp table DATES_UNIQUES(date_poste DATE) AS SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+sqlite3.OperationalError: near "AS": syntax error
+>>> con2.execute('create temp table DATES_UNIQUES(date_poste TEXT);')
+<sqlite3.Cursor object at 0x02332D60>
+>>> con2.execute('insert into DATES_UNIQUES(date_poste) SELECT date(debut_poste) FROM postes UNION SELECT date(fin_poste) FROM postes;')
+<sqlite3.Cursor object at 0x0223A820>
+>>> con2.commit()
+>>> con2.execute('select * from DATES_UNIQUES;').fetchall()
+[('2017-05-04',), ('2017-05-05',), ('2017-05-06',)]
+>>> con2.execute('select date_poste, debut_poste, fin_poste from DATES_UNIQUES AS U, postes AS p on U.date_poste = date(P.debut_poste);')
+<sqlite3.Cursor object at 0x0223A820>
+>>> con2.execute('select date_poste, debut_poste, fin_poste from DATES_UNIQUES AS U, postes AS p on U.date_poste = date(P.debut_poste);').fetchall()
+[('2017-05-04', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-06', '2017-05-06 06:00:00', '2017-05-06 18:00:00')]
+>>> con2.execute('select date_poste, debut_poste, fin_poste from DATES_UNIQUES AS U, postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+[('2017-05-04', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-05', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-06', '2017-05-06 06:00:00', '2017-05-06 18:00:00')]
+>>> con2.execute('select date_poste, debut_poste, fin_poste from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+[('2017-05-04', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-05', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-06', '2017-05-06 06:00:00', '2017-05-06 18:00:00')]
+>>> con2.execute('select date_poste, debut_poste, fin_poste from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+[('2017-05-04', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-05', '2017-05-04 18:00:00', '2017-05-05 06:00:00'), ('2017-05-06', '2017-05-06 06:00:00', '2017-05-06 18:00:00')]
+>>> con2.execute('select date_poste, debut_poste, fin_poste, max(datetime(date_poste, debut_poste), min(datetime(date_poste), fin_poste) from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#128>", line 1, in <module>
+    con2.execute('select date_poste, debut_poste, fin_poste, max(datetime(date_poste, debut_poste), min(datetime(date_poste), fin_poste) from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+sqlite3.OperationalError: near "from": syntax error
+>>> con2.execute('select date_poste, debut_poste, fin_poste, CASE debut_req WHEN datetime(date_poste) > debut_poste THEN datetime(date_poste) ELSE debut_poste END debut_req, min(datetime(date_poste), fin_poste) from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+Traceback (most recent call last):
+  File "<pyshell#129>", line 1, in <module>
+    con2.execute('select date_poste, debut_poste, fin_poste, CASE debut_req WHEN datetime(date_poste) > debut_poste THEN datetime(date_poste) ELSE debut_poste END debut_req, min(datetime(date_poste), fin_poste) from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+sqlite3.OperationalError: no such column: debut_req
+>>> con2.execute('select date_poste, debut_poste, fin_poste, CASE date_poste WHEN datetime(date_poste) > debut_poste THEN datetime(date_poste) ELSE debut_poste END debut_req, min(datetime(date_poste), fin_poste) from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);').fetchall()
+[('2017-05-04', '2017-05-04 18:00:00', '2017-05-05 06:00:00', '2017-05-04 18:00:00', '2017-05-04 00:00:00'), ('2017-05-05', '2017-05-04 18:00:00', '2017-05-05 06:00:00', '2017-05-04 18:00:00', '2017-05-05 00:00:00'), ('2017-05-06', '2017-05-06 06:00:00', '2017-05-06 18:00:00', '2017-05-06 06:00:00', '2017-05-06 00:00:00')]
+>>> con2.execute("select date_poste, debut_poste, fin_poste, CASE date_poste WHEN datetime(date_poste) > debut_poste THEN datetime(date_poste) ELSE debut_poste END debut_req, CASE date_poste WHEN datetime(dateposte, '+1 day') > fin_poste THEN fin_poste ELSE datetime(dateposte, '+1 day') END fin_req from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);").fetchall()
+Traceback (most recent call last):
+  File "<pyshell#131>", line 1, in <module>
+    con2.execute("select date_poste, debut_poste, fin_poste, CASE date_poste WHEN datetime(date_poste) > debut_poste THEN datetime(date_poste) ELSE debut_poste END debut_req, CASE date_poste WHEN datetime(dateposte, '+1 day') > fin_poste THEN fin_poste ELSE datetime(dateposte, '+1 day') END fin_req from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);").fetchall()
+sqlite3.OperationalError: no such column: dateposte
+>>> con2.execute("select date_poste, debut_poste, fin_poste, CASE date_poste WHEN datetime(date_poste) > debut_poste THEN datetime(date_poste) ELSE debut_poste END debut_req, CASE date_poste WHEN datetime(date_poste, '+1 day') > fin_poste THEN fin_poste ELSE datetime(date_poste, '+1 day') END fin_req from DATES_UNIQUES AS U JOIN postes AS p on U.date_poste = date(P.debut_poste) or U.date_poste = date(P.fin_poste);").fetchall()
+[('2017-05-04', '2017-05-04 18:00:00', '2017-05-05 06:00:00', '2017-05-04 18:00:00', '2017-05-05 00:00:00'), ('2017-05-05', '2017-05-04 18:00:00', '2017-05-05 06:00:00', '2017-05-04 18:00:00', '2017-05-06 00:00:00'), ('2017-05-06', '2017-05-06 06:00:00', '2017-05-06 18:00:00', '2017-05-06 06:00:00', '2017-05-07 00:00:00')]
+>>> 

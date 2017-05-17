@@ -52,4 +52,13 @@ r.cell("DEMANDE DE RAPPEL SUR HEURES SUPPLEMENTAIRES",l)
 # prend tableau en param. et qui attache de suite la ligne au tableau
 #r.finligne(l,t)
 # fin de l essai d ajout d un deuxieme tableau à la suite
+# ajout d un troisieme tableau: essai d ajout de tranche:
+t = r.tbl(3)
+l = r.ligne(t)
+r.tranche(l,["rha", "blbl", "meuh"])
+l = r.ligne(t)
+r.tranche(l,["mouias", "bof", "ok"])
+#ok
+r.texteLibre(" ")
+r.texteLibre("ce texte est libre")
 r.sauverDocument()
