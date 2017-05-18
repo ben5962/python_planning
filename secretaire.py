@@ -152,6 +152,7 @@ class Secretaire(object):
         interv_sem = s.getBornesEnFrancais()
          #c2
         total_hebdo = self.getBdd().getCumulHeuresTravailleesSemaine(scal = s)
+        
         self.r().tranche(l, [pres_sem,interv_sem,total_hebdo,"",""])
 
     def pres_TableauMensuelHeuresEffectuees(self):

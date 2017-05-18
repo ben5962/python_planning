@@ -2,6 +2,12 @@
 #qpy:2
 #qpy:consol
 from metier import Entree
+from metier import timedelta_to_hour
+from metier import diff_entre_deux_datestimes
+
+
+from dateutil.parser import parse
+
 class bdd (object):
     """
     les données, indépendemment de leur mode d obtention
@@ -402,14 +408,37 @@ class realdb (object):
             else:
                 raise("erreur sur paramètres")
         tuple_premier_et_dernier_jour_semaine = s.getPremierEtDernierJourSemaine()
+        premier_jour = tuple_premier_et_dernier_jour_semaine[0]
+        dernier_jour = tuple_premier_et_dernier_jour_semaine[1]
         """ il faut transformer getBornes pour que la requete sql soit acceptée par sqlite
             comme requête entre deux bornes:
             - de (datetime.datetime(...), datetime.datetime(...))
                 à ... no se"""
-        tuple_resultat = self.getCnx().execute(self.getBibliothecaireDba()
+        tuple_resultat = self.getListePeriodesTravailleesEntreDeuxDates(
+            premier_jour,dernier_jour)
+
+        result = sum(
+            [ timedelta_to_hour(
+                diff_entre_deux_datestimes(
+                    parse(t[0]),
+                    parse(t[1])
+                    )
+                )
+            for t in self.getListePeriodesTravailleesEntreDeuxDates(
+                premier_jour,
+                dernier_jour
+                )
+              ]
+            )
+        return result
+
+
+    def getListePeriodesTravailleesEntreDeuxDates(self,d1,d2):
+        """ datetime.date x datetime.date -> [(dtime_deb, dtime_fin),..(,)]"""
+        return self.getCnx().execute(self.getBibliothecaireDba()
                                                .getRequeteLectureByName('periodes_travaillees_entre_deux_dates'),
-                                               tuple_premier_et_dernier_jour_semaine).fetchall()
-        return tuple_resultat
+                                               (d1, d2)
+                                     ).fetchall()
 
 
     def getNombrePostesSaisis(self):

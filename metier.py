@@ -191,7 +191,17 @@ def date_en_francais(la_date):
     return ''.join([nom_jour," ", numero_ds_mois," ", nom_mois," ", annee, " ", heure, "h"])
     
         
-             
+def timedelta_to_hour(td):
+    """prend un time delta renvoie un nb entier d heures.
+        un time delta possede la méth total_seconds"""
+    return td.total_seconds() / 3600
+
+def diff_entre_deux_datestimes(d1,d2):
+    """renvoie un timedelta de difference entre deux dates"""
+    d1.hour
+    d2.hour # si l un des deux échoue alors pas datetime
+    return d2 - d1
+        
  
 
 class Regle(object):
