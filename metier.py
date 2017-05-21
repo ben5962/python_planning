@@ -109,6 +109,7 @@ class moisCalendaire(object):
         self.mois = num_mois
 
     def iterSemainesHsup39(self):
+        """ -> (aaaa, num_sem)"""
         import datetime
         import calendar
         cal = calendar.Calendar()
@@ -120,6 +121,21 @@ class moisCalendaire(object):
                                                calendar.monthrange(self.annee,self.mois)[1]
                                                )
                 )
+
+    def iterSemaine(self):
+        """ num_sem"""
+        import datetime
+        import calendar
+        cal = calendar.Calendar()
+        return (semaine[0].isocalendar()[1]
+                for semaine
+                in cal.monthdatescalendar(self.annee,self.mois)
+                if semaine[6] <= datetime.date(self.annee,
+                                               self.mois,
+                                               calendar.monthrange(self.annee,self.mois)[1]
+                                               )
+                )
+        
 
 
 class semaineCalendaire(object):

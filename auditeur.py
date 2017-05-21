@@ -69,9 +69,9 @@ pour l isntrant print. peut etre TODO logger.log"""
     def setObjetRapport(self):
         """met un objet rapport odf dansl e contexte commun
         - parce  que plus pratique à manipuler"""
-        if self.getTypeSortie() == 'odf'
+        if self.getTypeSortie() == 'odf':
             self.Rapport = odfpy_wrapper.Rapport(self.getNomFichierDestination())
-        if self.getTypeSortie() == 'text'
+        if self.getTypeSortie() == 'text':
             pass # trouver une representation arborescente à la con
 
     def getObjetRapport(self):
