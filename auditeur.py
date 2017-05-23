@@ -105,7 +105,7 @@ pour l isntrant print. peut etre TODO logger.log"""
     def setTypeSortie(self,chaine):
         self.typeSortie = self.getBdd().creerTypeSortieParNom(chaine)
 
-    def getTypeSortie(self)
+    def getTypeSortie(self):
         return self.typeSortie
 
     def auditer(self):
@@ -115,7 +115,7 @@ pour l isntrant print. peut etre TODO logger.log"""
         self.setObjetRapport()
         for NomTache in getBdd().iterNomTache(): 
             t = self.getBdd().creerTypeTacheParNom(Nomtache, self.getTypeSortie(),self.getObjetRapport(), self.getAnnee()).ajouterAuRapport()
-        self.
+        
             
         self._deleguer_travail_verif()
         self._deleguer_travail_saisie()

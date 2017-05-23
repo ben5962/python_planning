@@ -7,7 +7,7 @@ from metier import diff_entre_deux_datestimes
 
 
 from dateutil.parser import parse
-
+import devpy.develop as log
 class bdd (object):
     """
     les données, indépendemment de leur mode d obtention
@@ -536,14 +536,19 @@ leurs contraintes"""
         TAILLE_HEADER_SQLITE3 = 100
         from os.path import isfile, getsize
         if not isfile(filename):
-            print (filename + "est pas un fich")
+            log.error(filename + " est pas un fich")
             return False
         if getsize (filename) < TAILLE_HEADER_SQLITE3:
-            print ("trop petit pr e fic sqlitr3")
+            log.error("trop petit pr e fic sqlitr3")
             return False
         with open (filename, 'rb') as fd :
             header = fd.read (TAILLE_HEADER_SQLITE3)
-            return header [:16] == 'SQLite format 3\x00'
+            verite = (header [:16] == b'SQLite format 3\x00')
+            if not verite:
+                log.error("{}: mauvais header sqlite3".format(filename)) 
+            else:
+                log.info("fichier {} est bien de type sqlite3".format(filename))
+            return verite
             
     def TestFichierDbExiste(self):
         """teste l existance d un FICHIER sqlite3"""
@@ -559,7 +564,7 @@ leurs contraintes"""
         #isolation_level = None
         masque_options = param1 | param2
         #self.cnx = sqlite3.connect(db,isolation_level, masque_options)
-        self.cnx = sqlite3.connect(db,param1 | param2)
+        self.cnx = sqlite3.connect(db)
 
     def TestAttributCnxExisteEtCnxOuverte(self):
         """doit provoquer un attributError si self.cnx existe pas et un sqlite.programmingError si la cnx est fermée. ne sert à rien d autre"""
@@ -584,15 +589,15 @@ leurs contraintes"""
             print("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
 
 
-    def fermerCnx(self,cnx):
+    def fermerCnx(self):
         """ferme une cnx et le dit pr debug"""
         print("je ferme la cnx")
-        cnx.close()
+        self.getCnx().close()
 
     def createDbFile(self):
         """cree un fichier db"""
         con = self.getCnx()
-        self.fermerCnx(con)
+        self.fermerCnx()
         
             
             
