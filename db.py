@@ -131,12 +131,16 @@ class bdd (object):
     import calendrierComptable
     
 
-    def __init__(self):
+    def __init__(self,realdb=None):
         #self.setListeNomsEtapesVerificationMensuelle()
-        self.setRealDb()
+        self.setRealDb(realdb)
 
-    def setRealDb(self):
-        self.realdb = realdb()
+    def setRealDb(self, realdb=None):
+        import db
+        if realdb is None:
+            self.realdb = db.realdb()
+        else:
+            self.realdb = realdb
 
     def getRealDb(self):
         #une  UNIQUE instance de RealDb()! 
@@ -365,8 +369,10 @@ class realdb (object):
         """remplit la base via larbin si pas remplie"""
         if not self.__nb_lignes_db(): # faux <=> renvoie 0
             print("remplissons la base: elle ne contient aucune entrée actuellement")
+            import db
+            b = db.bdd(realdb = self)
             import larbin
-            l = larbin.larbin()
+            l = larbin.larbin(bdd = b)
             l.saisir()
             
             
@@ -505,16 +511,49 @@ class realdb (object):
 et s assurer que le fichier existe qu il est une base sqlite3
 et que la base a le bon schemas"""
         self.fichierdb = filename
-        db = self.getFichierDb()
-        if not self.TestFichierDbExiste():
-            """le fichier est cree en cnnct a fichier
-q existe pas et fermant cnx"""
-            print(self.getFichierDb() + "existe pas . le cree.""")
-            self.createDbFile()
-        print("teste si le schemas existe")
-        if not self.TestSchemasDbExiste():
-            print("schemas existe pas ou pas conforme. le cree""")
-            self.setSchemaDb() # effet de bord: ecrit dans un fichier sql
+        def commentaire2():
+            db = self.getFichierDb()
+            if not self.TestFichierDbExiste():
+                """le fichier est cree en cnnct a fichier
+        q existe pas et fermant cnx"""
+                print(self.getFichierDb() + "existe pas . le cree.""")
+                self.createDbFile()
+            print("teste si le schemas existe")
+            if not self.TestSchemasDbExiste():
+                print("schemas existe pas ou pas conforme. le cree""")
+                self.setSchemaDb() # effet de bord: ecrit dans un fichier sql
+
+    def acces_premier_element_tuple(self,t):
+        return t[0]
+
+    def TestDonneesDbExistent(self):
+        """teste si chaque table comporte au moins mettons 50 enregistrements"""
+        verite = True
+        for t in self.listerToutesTablesSQL():
+            nom_table = self.acces_premier_element_tuple(t)
+            e = self.compterEnregistrements(nom_table)
+            print ("pour la table {} j ai compte {} enregistrements"
+                   .format(t, e))
+            if e < 50:
+                print ("c est moins de 50")
+                verite = False
+        return verite
+    
+    def listerToutesTablesSQL(self):
+        """renvoie la liste des tables sql dans une liste de tuples [ (aa,), (bb,)] 
+        parce que pas le choix, c est le format de """
+        return self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteMetaByName('lister_tables_sql')
+            )
+
+    def compterEnregistrements(self,nom_table):
+        """ renvoie le nombre d enr d une table"""
+        req = self.getBibliothecaireDba().getRequeteMetaByName('nombre_enr_table_param')
+        req = req.replace('<TABLE>', nom_table)
+        return self.acces_premier_element_tuple(
+            self.getCnx().execute(req).fetchone()
+            )
 
 
     def TestSchemasDbExiste(self):
@@ -669,10 +708,15 @@ sans faire un fetchone qui renvoie un resultat """
         texterequete = self.getBibliothecaireDba().getRequeteLectureByName('tous_postes')
         return self.renvoyerCurseurRequeteLecture(texterequete)
 
+    def acces_premier_element_tuple(self,tup):
+        return tup[0]
+
     def iterAnneesDispo(self):
         """renvoie un iterateur aux annees disponibles"""
         texterequete = self.getBibliothecaireDba().getRequeteLectureByName('annees_dispo')
-        return self.renvoyerCurseurRequeteLecture(texterequete)
+        for a in self.renvoyerCurseurRequeteLecture(texterequete):
+            annee = a[0]
+            yield int(annee)
     
 
 class bibliothecaire_dba (object):
@@ -711,6 +755,27 @@ class bibliothecaire_dba (object):
                                                     FROM
                                                     periodes_travaillees
                                                     ;''')
+            self.dicorequetes['meta'].setdefault('lister_tables_sql',
+                                                 '''SELECT 
+                                                         name 
+                                                    FROM
+                                                        sqlite_master
+                                                    WHERE 
+                                                        type="table"
+                                                        ;
+                                                        ''')
+            self.dicorequetes['meta'].setdefault('nombre_postes_saisis',
+                                                       "SELECT COUNT(*) FROM "
+                                                        + nom_table_liste_postes
+                                                       )
+            self.dicorequetes['meta'].setdefault('nombre_enr_table_param',
+                                                 '''SELECT 
+                                                     COUNT(*)
+                                                    FROM
+                                                        <TABLE>
+                                                    ;
+                                                 ''')
+            
             # convertisseur de texte vers timestamp existe par defaut. rend non nécessaire l ecriture d un convertisseur sqllite3->py
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
             # car déjà fourni

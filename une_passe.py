@@ -1,14 +1,16 @@
 import functools
 #from metier import moisCalendaire
 import utilitaireDates
-class bdd(object):
-    def iterAnneesDispo(self):
-        for a in [2013,2014, 2015, 2016]:
-            yield a
+import db
+import devpy.develop as log
+log.disabled
+
+    
+
 
 
 def getCumulHeuresTravailleesSemaine(a,s):
-    return 44
+    return int(db.bdd().getCumulHeuresTravailleesSemaine(a,s))
 
 def gen_heures_sup_semaines(aaaa, num_sem):
     c = getCumulHeuresTravailleesSemaine(aaaa,num_sem)
@@ -22,6 +24,8 @@ def gen_heures_sup_semaines(aaaa, num_sem):
 
 
 def seuil(base, mn, mx):
+    log.debug("lancement de seuil avec base = {}, mn = {}, mx= {}"
+              .format(base, mn, mx))
     if mx < mn:
         raise("max > min")
     else:
@@ -65,10 +69,12 @@ def gen_heures_sup_annee(a):
     print("A {}vaut {}".format(a, A))
     return A
 
-
+def _acces_premier_element_tuple(t):
+    return t[0]
 
 def iter_heures_sup_annees():
-    for a in bdd().iterAnneesDispo():
+    for a in db.bdd().iterAnneesDispo():
+        annee = int(a)
         yield gen_heures_sup_annee(a)
 
 

@@ -1,9 +1,10 @@
 import calendar
 import datetime
-
+import devpy.develop as log
 
 def contrainte(e,mn, mx):
     """vérifie que e est bien dans dans l'intervalle mn mx """
+    log.info("lancement de contrainte avec e = {} de type{}, mn = {} de type{}, mx= {} de type {}".format(e, type(e), mn, type(mn), mx, type(mx)))
     if e < mn or e > mx:
         raise ValueError('valeur hors de l intervalle ', e, mn, mx)
 
@@ -65,6 +66,7 @@ def iter_semaine_comptable_de_mois(aaaa,m):
 
 def iterSemaine(aaaa,m):
     """seulement les semaines terminées dans le mois  -> num_sem"""
+    aaaa = int(aaaa)
     contrainte(aaaa, 2010,2020)
     contrainte(m, 1,12)
     for liste_dates_semaine in listes_dates_semaines_commencees_ou_terminees_du_mois(aaaa,m):
