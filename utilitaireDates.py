@@ -4,7 +4,7 @@ import devpy.develop as log
 
 def contrainte(e,mn, mx):
     """vérifie que e est bien dans dans l'intervalle mn mx """
-    log.info("lancement de contrainte avec e = {} de type{}, mn = {} de type{}, mx= {} de type {}".format(e, type(e), mn, type(mn), mx, type(mx)))
+    log.debug("lancement de contrainte avec e = {} de type{}, mn = {} de type{}, mx= {} de type {}".format(e, type(e), mn, type(mn), mx, type(mx)))
     if e < mn or e > mx:
         raise ValueError('valeur hors de l intervalle ', e, mn, mx)
 

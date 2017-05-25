@@ -6,7 +6,9 @@ import devpy.develop as log
 log.disabled
 
     
-
+# il faudrait un canal en plus de info, debug, warning critical:
+# celui de la sortie de l appli
+# claqué pour l instant en log.info
 
 
 def getCumulHeuresTravailleesSemaine(a,s):
@@ -19,7 +21,7 @@ def gen_heures_sup_semaines(aaaa, num_sem):
            max(0, seuil(c, 43, 48) - 0) ,
            max(0, seuil(c, 48, 1000) - 0)
             ]
-    print("hsem {} de l annee {} vaut {}".format(num_sem, aaaa, hs))
+    log.info("hsem {} de l annee {} vaut {}".format(num_sem, aaaa, hs))
     return hs
 
 
@@ -51,7 +53,7 @@ def gen_heures_sup_mois(m,a):
         iter_heures_sup_semaines_mois(a,m),
          [0,0,0,0]
         )
-    print("M {} de l annee {} vaut {} ".format(m, a, M))
+    log.info("M {} de l annee {} vaut {} ".format(m, a, M))
     return M
 
 
@@ -66,7 +68,7 @@ def gen_heures_sup_annee(a):
     somme_terme_a_terme,
     iter_heures_sup_mois(a),
     [0,0,0,0] )
-    print("A {}vaut {}".format(a, A))
+    log.info("A {}vaut {}".format(a, A))
     return A
 
 def _acces_premier_element_tuple(t):
@@ -84,5 +86,5 @@ def total():
         somme_terme_a_terme,
         iter_heures_sup_annees(),
         [0,0,0,0])
-    print("grand total vaut {}".format(T))
+    log.info("grand total vaut {}".format(T))
     
