@@ -15,7 +15,7 @@ def getCumulHeuresTravailleesSemaine(a,s):
 def gen_heures_sup_semaines(aaaa, num_sem):
     c = getCumulHeuresTravailleesSemaine(aaaa,num_sem)
     hs = [ c,
-           max(0, seuil(c, 35, 43) - 4) ,
+           max(0, seuil(c, 35, 43) - 0) ,
            max(0, seuil(c, 43, 48) - 0) ,
            max(0, seuil(c, 48, 1000) - 0)
             ]
@@ -25,7 +25,7 @@ def gen_heures_sup_semaines(aaaa, num_sem):
 def gen_heures_sup_semaines2(aaaa, num_sem):
     c = getCumulHeuresTravailleesSemaine(aaaa,num_sem)
     hs = [ c,
-           max(0, seuil(c, 35, 43) - 4) ,
+           max(0, seuil(c, 35, 43) - 0) ,
            max(0, seuil(c, 43, 48) - 0) ,
            max(0, seuil(c, 48, 1000) - 0)
             ]
@@ -183,5 +183,21 @@ def total2():
     for ligne in L:
         log.info(ligne)
     log.info(T)
+    log.info(T)
+    log.info("si l on fait un décompte qui vous est favorable (le total sur 3 ans -plus la période est longue, plus les totaux se lissent-")
+    log.info("le total d heures supplémentaires à 25 % s'élève à {} heures".format(T[2]))
+    log.info("ce qui, comparé à 564 heures à 25% payées sur ces 3 années (47 x 4 x 3années)")
+    log.info("représente encore {} hors bonification heures à 25% non payées. ".format(T[2] - 3 * 47 * 4))
+    log.info("ce qui représente après bonification {} equivalent heures dûes".format((T[2] - 3 * 47 * 4) * 1.25))
+    log.info("d autre part, les heures à 50% (de 43 à 48 heures ne sont jamais rémunérées")
+    log.info("cela représente {} hors bonification sur 3 ans jamais rémunérées".format(T[3]))
+    log.info("soit {} heures bonifiées".format(T[3] * 1.5))
+    log.info("ramené en équivalent heures - bonification de 25% et 50%- cela représente {} heures dûes".format(((T[2] - 3 * 47 * 4) * 1.25) + (T[3] * 1.50)))
+    log.info("enfin, sur ces 3 ans, {} heures ont été effectuées au-delà du maximum légal de 48 heures.".format(T[4]))
+    log.info("comment comptez vous les rémunérer? à 100% cela ajoute encore {} heures dûes".format(T[4] * 2))
+
+    
+    
+        
     
     
