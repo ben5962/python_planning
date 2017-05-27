@@ -180,7 +180,7 @@ class bdd (object):
     def verifier_travail_saisie_planning(self):
         """verifie que le nombre de saisies dans la base n est pas nul"""
         nombre_postes_saisis = self.getRealDb().getNombrePostesSaisis()
-        print("le nombre d elements de planning saisis est de : {}"
+        log.debug("le nombre d elements de planning saisis est de : {}"
               .format(nombre_postes_saisis)
               )
         if nombre_postes_saisis:  #vrai si non nul
@@ -191,7 +191,7 @@ class bdd (object):
     def verifier_travail_saisie_periodes_travaillees(self):
         """verifie que le nombre de saisies dans la base n est pas nul"""
         nombre_postes_saisis = self.getRealDb().getNombrePeriodesTravailleesSaisies()
-        print("le nombre d elements de périodes travaillées saisies est de : {}"
+        log.debug("le nombre d elements de périodes travaillées saisies est de : {}"
               .format(nombre_postes_saisis)
               )
         if nombre_postes_saisis:  #vrai si non nul
@@ -368,7 +368,7 @@ class realdb (object):
     def setContentDb(self):
         """remplit la base via larbin si pas remplie"""
         if not self.__nb_lignes_db(): # faux <=> renvoie 0
-            print("remplissons la base: elle ne contient aucune entrée actuellement")
+            log.debug("remplissons la base: elle ne contient aucune entrée actuellement")
             import db
             b = db.bdd(realdb = self)
             import larbin
@@ -377,8 +377,8 @@ class realdb (object):
             
             
         else:
-            print("base déjà remplie, rien à faire")
-            print("ont déjà été saisis {} postes et {} périodes travaillées".format(self.getNombrePostesSaisis(),
+            log.debug("base déjà remplie, rien à faire")
+            log.debug("ont déjà été saisis {} postes et {} périodes travaillées".format(self.getNombrePostesSaisis(),
                                                                                     self.getNombrePeriodesTravailleesSaisies()
                                                                                     )
                   )
@@ -472,14 +472,14 @@ class realdb (object):
         """saisit toutes les entrees dans la base"""
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
         for entree in iterateurEntrees:
-            print("ecriture de ", entree),
+            log.debug("ecriture de ", entree),
             self.getCnx().execute(texterequete, entree)
         self.getCnx().commit()
 
     def saisir_entree(self, tuple_entree):
         """ saisit 1 entree dans la base """
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
-        print("ecriture de ", tuple_entree),
+        log.debug("ecriture de ", tuple_entree),
         self.getCnx().execute(texterequete, tuple_entree)
 
     def valider(self):
@@ -516,11 +516,11 @@ et que la base a le bon schemas"""
             if not self.TestFichierDbExiste():
                 """le fichier est cree en cnnct a fichier
         q existe pas et fermant cnx"""
-                print(self.getFichierDb() + "existe pas . le cree.""")
+                log.debug(self.getFichierDb() + "existe pas . le cree.""")
                 self.createDbFile()
-            print("teste si le schemas existe")
+            log.debug("teste si le schemas existe")
             if not self.TestSchemasDbExiste():
-                print("schemas existe pas ou pas conforme. le cree""")
+                log.debug("schemas existe pas ou pas conforme. le cree""")
                 self.setSchemaDb() # effet de bord: ecrit dans un fichier sql
 
     def acces_premier_element_tuple(self,t):
@@ -564,7 +564,7 @@ TODO verifier si les champs de chaque table correspondent
 en comparant la table speciale sqlite a une table custom de meme forme
 stockant les noms de tables, leurs noms et types de champs et
 leurs contraintes"""
-        print("verif si schemas db existe et conforme")
+        log.debug("verif si schemas db existe et conforme")
         ListeTables = self.getCnx().execute(self.getBibliothecaireDba()
                                 .getRequeteMetaByName('non_vide_si_table_planning_existe')[0],
                                             self.getBibliothecaireDba().getRequeteMetaByName('non_vide_si_table_planning_existe')[1]).fetchall()
@@ -622,15 +622,15 @@ leurs contraintes"""
         try:
             self.TestAttributCnxExisteEtCnxOuverte()
         except (AttributeError,ProgrammingError,OperationalError) as e :
-            print("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle", e)
+            log.debug("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle", e)
             self._connexion_effective()
         finally:
-            print("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
+            log.debug("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
 
 
     def fermerCnx(self):
         """ferme une cnx et le dit pr debug"""
-        print("je ferme la cnx")
+        log.debug("je ferme la cnx")
         self.getCnx().close()
 
     def createDbFile(self):
@@ -659,7 +659,7 @@ leurs contraintes"""
 
     def setSchemaDb(self):
         """cree la structure de la base si elle n existe pas"""
-        print("creation du schemas")
+        log.debug("creation du schemas")
         self.getCnx().execute(
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_tables_datetimeexperimentalsqlite3')
@@ -683,7 +683,7 @@ leurs contraintes"""
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_trig_aj_periode_trav_from_copy_poste')
             )
-        print("schemas doit maintenant etre cree")
+        log.debug("schemas doit maintenant etre cree")
                               
     
               

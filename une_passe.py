@@ -3,7 +3,7 @@ import functools
 import utilitaireDates
 import db
 import devpy.develop as log
-log.disabled
+log.setLevel('INFO')
 
     
 
@@ -19,8 +19,18 @@ def gen_heures_sup_semaines(aaaa, num_sem):
            max(0, seuil(c, 43, 48) - 0) ,
            max(0, seuil(c, 48, 1000) - 0)
             ]
-    print("hsem {} de l annee {} vaut {}".format(num_sem, aaaa, hs))
+    log.debug("hsem {} de l annee {} vaut {}".format(num_sem, aaaa, hs))
     return hs
+
+def gen_heures_sup_semaines2(aaaa, num_sem):
+    c = getCumulHeuresTravailleesSemaine(aaaa,num_sem)
+    hs = [ c,
+           max(0, seuil(c, 35, 43) - 4) ,
+           max(0, seuil(c, 43, 48) - 0) ,
+           max(0, seuil(c, 48, 1000) - 0)
+            ]
+    log.debug("hsem {} de l annee {} vaut {}".format(num_sem, aaaa, hs))
+    return ['w' + str(num_sem)] + hs
 
 
 def seuil(base, mn, mx):
@@ -38,6 +48,13 @@ def iter_heures_sup_semaines_mois(a, m):
     for num_semaine in utilitaireDates.iterSemaine(a,m):
         yield gen_heures_sup_semaines(a, num_semaine)
 
+
+def iter_heures_sup_semaines_mois2(a, m):
+##    M = moisCalendaire(m,a)
+##    for semaine in M.iterSemaine():
+    for num_semaine in utilitaireDates.iterSemaine(a,m):
+        yield gen_heures_sup_semaines2(a, num_semaine)
+
 def somme_terme_a_terme (a, b):
     c = []
     for indice in range(0,len(a)):
@@ -51,13 +68,35 @@ def gen_heures_sup_mois(m,a):
         iter_heures_sup_semaines_mois(a,m),
          [0,0,0,0]
         )
-    print("M {} de l annee {} vaut {} ".format(m, a, M))
+    log.debug("M {} de l annee {} vaut {} ".format(m, a, M))
     return M
+
+def gen_heures_sup_mois2(m,a):
+    TI = ["mois de {} {}".format(m,a)]
+    E  = ['s', 'tot','h>39', 'h>43', 'h>48']
+    S = list(iter_heures_sup_semaines_mois2(a,m))
+    M = functools.reduce(
+        somme_terme_a_terme,
+        iter_heures_sup_semaines_mois(a,m),
+         [0,0,0,0]
+        )
+    #M = ["CUMUL SEM"] + M
+    log.info(TI)
+    log.info(E)
+    for ligne in S:
+        log.info(ligne)
+    log.info(["CUMUL SEM"] + M)
+    log.debug("M {} de l annee {} vaut {} ".format(m, a, M))
+    return [str(m), M]
 
 
 def iter_heures_sup_mois(a):
     for mois in range(1,13):
         yield gen_heures_sup_mois(mois, a)
+
+def iter_heures_sup_mois2(a):
+    for mois in range(1,13):
+        yield gen_heures_sup_mois2(mois, a)
 
 
 
@@ -66,8 +105,35 @@ def gen_heures_sup_annee(a):
     somme_terme_a_terme,
     iter_heures_sup_mois(a),
     [0,0,0,0] )
-    print("A {}vaut {}".format(a, A))
+    log.debug("A {}vaut {}".format(a, A))
     return A
+
+def gen_heures_sup_annee_a(a):
+    A = functools.reduce(
+    somme_terme_a_terme,
+    iter_heures_sup_mois(a),
+    [0,0,0,0] )
+    log.debug("A {}vaut {}".format(a, A))
+    return [a] + A
+
+def gen_heures_sup_annee2(a):
+    TI = [''.join(['ANNEE ', str(a)])]
+    E = ['m', 'tot', '>35', '>43', '>48']
+    L = list(iter_heures_sup_mois2(a))
+    
+    A = functools.reduce(
+    somme_terme_a_terme,
+    iter_heures_sup_mois(a),
+    [0,0,0,0] )
+    log.debug("A {}vaut {}".format(a, A))
+    log.info(TI)
+    log.info(E)
+    for ligne in L:
+        log.info(ligne)
+    log.info(["CUMUL MOIS"] + A)
+    return A
+
+
 
 def _acces_premier_element_tuple(t):
     return t[0]
@@ -77,6 +143,19 @@ def iter_heures_sup_annees():
         annee = int(a)
         yield gen_heures_sup_annee(a)
 
+def iter_heures_sup_annees2():
+    for a in db.bdd().iterAnneesDispo():
+        annee = int(a)
+        yield gen_heures_sup_annee2(a)    
+
+def iter_heures_sup_annees_a():
+    for a in db.bdd().iterAnneesDispo():
+        annee = int(a)
+        yield gen_heures_sup_annee_a(a)
+
+
+    
+
 
 
 def total():
@@ -85,4 +164,24 @@ def total():
         iter_heures_sup_annees(),
         [0,0,0,0])
     print("grand total vaut {}".format(T))
+
+
+def total2():
+    TI = ['TOTAL ANNEES']
+    E = ['a', 'tot', '>35', '>43', '>48']
+    L = list(iter_heures_sup_annees_a())
+
+    T = functools.reduce(
+        somme_terme_a_terme,
+        iter_heures_sup_annees2(),
+        [0,0,0,0])
+    T = ['TOTAL'] + T
+    
+        
+    log.info(TI)
+    log.info(E)
+    for ligne in L:
+        log.info(ligne)
+    log.info(T)
+    
     
