@@ -55,6 +55,7 @@ def run():
         if ETAT == 'DONNEES_EXISTENT_PAS':
             print(ETAT)
             r.setContentDb()
+            ETAT = 'SCHEMAS_EXISTE'
             continue
         if ETAT == 'PRET_POUR_RAPPORT':
             print(ETAT)
