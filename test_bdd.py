@@ -178,6 +178,13 @@ class testbdd(unittest.TestCase):
         #con.execute('select count(*) from postes;').fetchone()con.execute('create temp table DATES_UNIQUES( date_poste TEXT );')
         #con.commit()
 
+    def verif_presence_type_cp(self):
+        import db
+        r = realdb()
+        absences = r.getCnx().execute('''select DISTINCT nom_poste from planning where categorie_poste = "absence" ;''').fetchall()
+        verite = 'CP' in absences
+        assertTrue(verite)
+
 
     def test_DOMAINE_annee_valide(self):
         #item 218
@@ -414,6 +421,63 @@ class testbdd(unittest.TestCase):
             self.assertEqual(poste, "P1")
         else:
             self.assertFalse()
+
+    def test_a_deduire(self):
+        """je vex une methode a_deduire qui
+           permette de calculer le nombre d heures restant dues
+           à 25% .
+           mon employeur me paie effectivement 169 heures par mois
+           dont 4 bonifiées à 25 %:
+           il applique la l3121-31:
+  Article L3121-31 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Dans les entreprises dont la durée collective hebdomadaire de travail est supérieure
+à la durée légale hebdomadaire, la rémunération mensuelle due au salarié peut être calculée
+en multipliant la rémunération horaire par les cinquante-deux douzièmes de cette durée hebdomadaire de travail,
+en tenant compte des majorations de salaire correspondant aux heures supplémentaires accomplies.
+
+          cependant si dans mon contrat l'annualisaiont n'est pas valable,
+          alors les 39 non plus (pas un self service ou on prend une partie
+          et pas le reste)
+          le raisonnement de l'avocat est de partir des 35 heures sur la base
+          des art 3121-27 et 3121-28 et 29:
+          1) compter la qté d heures de chaque semaine travaillée.
+             si plus de 35 heures 25% dues.
+           2) cumuler ca à l'année.
+
+Article L3121-27 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+La durée légale de travail effectif des salariés à temps complet est fixée à trente-cinq heures par semaine.
+
+Article L3121-28 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Toute heure accomplie au delà de la durée légale hebdomadaire
+ou de la durée considérée comme équivalente est une heure supplémentaire
+qui ouvre droit à une majoration salariale ou, le cas échéant,
+à un repos compensateur équivalent.
+
+Article L3121-29 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Les heures supplémentaires se décomptent par semaine.
+
+Article L3121-30 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Des heures supplémentaires peuvent être accomplies
+dans la limite d'un contingent annuel.
+Les heures effectuées au delà de ce contingent annuel
+ouvrent droit à une contrepartie obligatoire sous forme de repos.
+
+Les heures prises en compte pour le calcul du contingent
+annuel d'heures supplémentaires sont celles accomplies
+au delà de la durée légale.
+
+Les heures supplémentaires ouvrant droit
+au repos compensateur équivalent mentionné à l'article L. 3121-28
+et celles accomplies dans les cas de travaux urgents
+énumérés à l'article L. 3132-4
+ne s'imputent pas sur le contingent annuel d'heures supplémentaires.
+            """
+        pass
 
 
     def test_SYNTAXE_re_nommee(self):

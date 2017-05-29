@@ -362,7 +362,7 @@ class realdb (object):
         # la db a le bon schemas
         # structure
         #self.cnx = "" # initialise par setCnx
-        self.setCnx()
+        #self.setCnx()
         
 
     def setContentDb(self):
@@ -385,6 +385,33 @@ class realdb (object):
 
     def __nb_lignes_db(self):
         return self.getNombrePostesSaisis()
+
+    def iterSemainesMoinsDe35Heures(self,borne_etudiee):
+        """trouver les semaines de l annees où
+            j ai travaille mois de <borne_etudiee> heures.
+            utilisation : r = realdb()
+            r.iterSemainesMoinsDe35heures(39) pour
+            compter le nombre de semaines qui comporteront
+            des heures négatives - 39 heures payées moins de 39 faites -
+            certaines semaines comprennent des congés payés.
+            il faut combler les trous des semaines en trop
+            après cela il faudra borner cela à l'années:
+            à la fin d une année on arrête de compter"""
+        listeSemainesMoinsDe35Heures = []
+        from db import bdd
+        import utilitaireDates
+        for annee in self.iterAnneesDispo():
+            for mois in bdd().iterMonthNumber():
+                for semaine in utilitaireDates.iterSemaine(annee,mois):
+                    duree = self.getCumulHeuresTravailleesSemaine(annee,semaine) + self.getEqvCongesSemaine(annee,semaine)
+                    """à cette fin, il faut remplir une table des repos sur le meme modele que horaires trav """
+
+                    if duree < borne_etudiee:
+                        le_tuple = (annee, semaine, duree, 39 - duree)
+                        print(le_tuple)
+                        listeSemainesMoinsDe35Heures.append(le_tuple)
+        return listeSemainesMoinsDe35Heures
+                    
             
             
 
@@ -511,13 +538,16 @@ class realdb (object):
 et s assurer que le fichier existe qu il est une base sqlite3
 et que la base a le bon schemas"""
         self.fichierdb = filename
-        def commentaire2():
+        
+        def crea_fich_si_necessaire():
             db = self.getFichierDb()
             if not self.TestFichierDbExiste():
                 """le fichier est cree en cnnct a fichier
         q existe pas et fermant cnx"""
                 log.debug(self.getFichierDb() + "existe pas . le cree.""")
                 self.createDbFile()
+        crea_fich_si_necessaire()
+        def commentaire3():
             log.debug("teste si le schemas existe")
             if not self.TestSchemasDbExiste():
                 log.debug("schemas existe pas ou pas conforme. le cree""")
@@ -622,7 +652,8 @@ leurs contraintes"""
         try:
             self.TestAttributCnxExisteEtCnxOuverte()
         except (AttributeError,ProgrammingError,OperationalError) as e :
-            log.debug("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle", e)
+            log.debug("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle")
+            log.debug(e)
             self._connexion_effective()
         finally:
             log.debug("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
@@ -636,6 +667,10 @@ leurs contraintes"""
     def createDbFile(self):
         """cree un fichier db"""
         con = self.getCnx()
+        con.execute('CREATE TABLE pff( mouais TEXT);')
+        con.commit()
+        con.execute('INSERT INTO pff(mouais) VALUES ("gibberish");')
+        con.commit()
         self.fermerCnx()
         
             
@@ -717,6 +752,30 @@ sans faire un fetchone qui renvoie un resultat """
         for a in self.renvoyerCurseurRequeteLecture(texterequete):
             annee = a[0]
             yield int(annee)
+
+    def getNomsTables(self):
+        """renvoie le nom des tables dispo hors sqlite_master """
+        texterequete = self.getBibliothecaireDba(
+            ).getRequeteMetaByName('nom_des_tables')
+        return [
+            member[1] for member in self.getCnx(
+                ).execute(texterequete).fetchall()]
+
+
+    def getNomsColonnes(self, nom_table):
+        """ renvoie le nom des colonnes d une table existante"""
+        texterequete = self.getBibliothecaireDba(
+            ).getRequeteLectureByName('astuce_noms_colonnes')
+        texterequete = texterequete.replace('<NOM_TABLE>', nom_table)
+        return next(
+            zip(*self.renvoyerCurseurRequeteLecture(texterequete).description)
+            )
+        
+        
+
+        
+
+    
     
 
 class bibliothecaire_dba (object):
@@ -740,6 +799,16 @@ class bibliothecaire_dba (object):
             self.dicorequetes.setdefault('ecriture', {})
             self.dicorequetes.setdefault('meta', {})
             self.dicorequetes.setdefault('crea', {})
+
+            self.dicorequetes['meta'].setdefault('nom_des_tables',
+                                                 '''
+                                                SELECT
+                                                *
+                                                FROM
+                                                sqlite_master
+                                                WHERE type="table"
+                                                ;
+                                                ''')
             self.dicorequetes['meta'].setdefault('non_vide_si_table_planning_existe',
                                                  ("SELECT name from sqlite_master where type='table' and name = ?",
                                                   (nom_table_liste_postes,)
@@ -806,6 +875,17 @@ class bibliothecaire_dba (object):
                                                      + nom_table_liste_postes
                                                      + """WHERE  d > ?  AND f <= ?""", "" )
                                                     )
+            self.dicorequetes['lecture'].setdefault('astuce_noms_colonnes',
+                                                    '''
+                                                    SELECT
+                                                    *
+                                                    FROM
+                                                    <NOM_TABLE>
+                                                    limit 1
+                                                    ;
+                                                    ''')
+
+            
             self.dicorequetes['crea'].setdefault('creer_tables',
                                                  '''CREATE TABLE {} (
                                                     debut_poste TEXT,
