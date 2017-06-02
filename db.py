@@ -559,7 +559,8 @@ et que la base a le bon schemas"""
     def TestDonneesDbExistent(self):
         """teste si chaque table comporte au moins mettons 50 enregistrements"""
         verite = True
-        for t in self.listerToutesTablesSQL():
+        listerToutesTablesSQLImportantes = ( t for t in self.listerToutesTablesSQL() if self.acces_premier_element(t) != "pff")
+        for t in listerToutesTablesSQLImportantes:
             nom_table = self.acces_premier_element_tuple(t)
             e = self.compterEnregistrements(nom_table)
             print ("pour la table {} j ai compte {} enregistrements"

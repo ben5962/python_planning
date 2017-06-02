@@ -60,7 +60,7 @@ def run():
         if ETAT == 'PRET_POUR_RAPPORT':
             print(ETAT)
     
-            une_passe.total()
+            une_passe.prejudice()
             ETAT = 'FIN'
             continue
             

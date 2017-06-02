@@ -83,7 +83,7 @@ def gen_heures_sup_semaines(aaaa, num_sem, hsup25payees=0, hsup50payees=0):
 
 
 
-def heures_sup_restant_dues(heures):
+def prejudice():
     """hsrd = hss_effectuee - hsspayee.
        les heures négatives ?   c est le point le plus important:
        trois positions possibles:
@@ -126,8 +126,216 @@ def heures_sup_restant_dues(heures):
             vider_cagnotte
             si_heures_sup:
                 ajouter_heures_sup
-        renvoyer tableau_heures_sup_mensuelles"""
+        renvoyer tableau_heures_sup_mensuellesje vex une methode restant_dues qui
+           permette de calculer le nombre d heures restant dues
+           à 25% .
+           mon employeur me paie effectivement 169 heures par mois
+           dont 4 bonifiées à 25 %:
+           il applique la l3121-31:
+  Article L3121-31 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Dans les entreprises dont la durée collective hebdomadaire de travail est supérieure
+à la durée légale hebdomadaire, la rémunération mensuelle due au salarié peut être calculée
+en multipliant la rémunération horaire par les cinquante-deux douzièmes de cette durée hebdomadaire de travail,
+en tenant compte des majorations de salaire correspondant aux heures supplémentaires accomplies.
 
+          cependant si dans mon contrat l'annualisaiont n'est pas valable,
+          alors les 39 non plus (pas un self service ou on prend une partie
+          et pas le reste)
+          le raisonnement de l'avocat est de partir des 35 heures sur la base
+          des art 3121-27 et 3121-28 et 29:
+          1) compter la qté d heures de chaque semaine travaillée.
+             si plus de 35 heures 25% dues.
+           2) cumuler ca à l'année.
+
+Article L3121-27 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+La durée légale de travail effectif des salariés à temps complet est fixée à trente-cinq heures par semaine.
+
+Article L3121-28 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Toute heure accomplie au delà de la durée légale hebdomadaire
+ou de la durée considérée comme équivalente est une heure supplémentaire
+qui ouvre droit à une majoration salariale ou, le cas échéant,
+à un repos compensateur équivalent.
+
+Article L3121-29 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Les heures supplémentaires se décomptent par semaine.
+
+Article L3121-30 En savoir plus sur cet article...
+Modifié par LOI n°2016-1088 du 8 août 2016 - art. 8 (V)
+Des heures supplémentaires peuvent être accomplies
+dans la limite d'un contingent annuel.
+Les heures effectuées au delà de ce contingent annuel
+ouvrent droit à une contrepartie obligatoire sous forme de repos.
+
+Les heures prises en compte pour le calcul du contingent
+annuel d'heures supplémentaires sont celles accomplies
+au delà de la durée légale.
+
+Les heures supplémentaires ouvrant droit
+au repos compensateur équivalent mentionné à l'article L. 3121-28
+et celles accomplies dans les cas de travaux urgents
+énumérés à l'article L. 3132-4
+ne s'imputent pas sur le contingent annuel d'heures supplémentaires.
+
+AUTRE PT DE VUE:
+les heures sup dues sur un mois somment les heures sup dues des semaines terminees
+elles representent apres bonification un eqv heures trav
+comparable à l eqv heures trav de la bonif payée effectivement.
+elles permettent donc de déterminer un préjudice.
+
+
+        """
+
+    anneesdispo = list(db.bdd().iterAnneesDispo())
+    moisannee = list(range(1,13))
+    
+    def eqv_trv_de_sup_paye(mois,annee):
+        cste_h25_payee_mois = 17.33
+        return bonification25(cste_h25_payee_mois)
+
+    def bonification25(heures):
+        return heures * 1.25
+    
+    def bonification50(heures):
+        return heures * 1.50
+
+    def bonification100(heures):
+        return heures * 2
+
+    
+
+    def eqv_trv_de_sup_du(mois,annee):
+##        def eqv_trv_de_sup_sem_du(semaine, annee):
+##            e_s = eqv_trv_de_sup_sem_du_25(semaine,annee)
+##            + eqv_trv_de_sup_sem_du_50(semaine,annee)
+##            + eqv_trv_de_sup_sem_du_100(semaine,annee)
+##            return e_s
+##        def eqv_trv_de_sup_sem_du_25(semaine,annee):
+##            heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(semaine,annee)
+##            return bonification25(
+##                heures_sup_25_effectuees(heures_effectuees_semaine)
+##                )
+##        def eqv_trv_de_sup_sem_du_50(semaine,annee):
+##            heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(semaine,annee)
+##            return bonification50(
+##                heures_sup_50_effectuees(heures_effectuees_semaine)
+##                )
+##
+##        def eqv_trv_de_sup_sem_du_100(semaine,annee):
+##            heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(semaine,annee)
+##            return bonification100(
+##                heures_illegales_effectuees(heures_effectuees_semaine)
+##                )
+        
+        eqv = 0
+        import utilitaireDates
+        semainesmois = list(utilitaireDates.iterSemaine(annee,mois))
+        for semaine in semainesmois:
+            eqv = eqv + eqv_trv_de_sup_sem_du(semaine,annee)
+            phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
+            phrase_debug = phrase_debug.format(eqv, semaine,
+                                               eqv_trv_de_sup_sem_du_25(semaine,annee),
+                                               eqv_trv_de_sup_sem_du_50(semaine,annee),
+                                               eqv_trv_de_sup_sem_du_100(semaine,annee))
+                                               
+            log.debug(phrase_debug)
+        return eqv
+            
+            
+    cumul_total_posit = 0
+    cumul_total_neg = 0
+    cumul_total = 0
+    for annee in anneesdispo:
+        cumul_annuel_posit = 0
+        cumul_annuel_neg = 0
+        bilan_annuel = 0
+        for mois in moisannee:
+            cumul_mensuel_posit = 0
+            cumul_mensuel_neg = 0
+            
+            p = eqv_trv_de_sup_paye(mois,annee)
+            d = eqv_trv_de_sup_du(mois,annee)
+            phrase_datation = "pour mois {} annee {}".format(mois, annee)
+            phrase_ok_ko = phrase_datation  + "\n paye {} alors que du {}".format(p, d)
+            phrase_cumul_mensuel = "cumul mensuel de {}".format(d - p)
+            if p >= d:
+                log.info(phrase_ok_ko)
+                cumul_mensuel_neg = d - p
+                log.info(phrase_cumul_mensuel)
+                
+            else:
+                log.critical(phrase_ok_ko)
+                cumul_mensuel_posit = d - p
+                log.critical(phrase_cumul_mensuel)
+                log.critical("prejudice de {} pour le mois".format(cumul_mensuel_posit))
+                
+            cumul_annuel_posit = cumul_annuel_posit + cumul_mensuel_posit
+            cumul_annuel_neg = cumul_annuel_neg + cumul_mensuel_neg
+            # fin de pour chaque mois de l'année
+        # debut de pour chaque année
+        log.critical("cumul_annuel_posit (le seul à prendre en ocmpte puisque les heures sup sont comptees à la semaine et payees au mois. on s arrete donc au décompte des mois positifs): {}".format(cumul_annuel_posit))
+        log.info("cumul_annuel_neg : {}".format(cumul_annuel_neg))
+        log.critical("prejudice annuel (prejudice si posit) {}".format(cumul_annuel_posit + cumul_annuel_neg))
+        cumul_total_posit = cumul_annuel_posit + cumul_total_posit
+        cumul_total_neg = cumul_annuel_neg + cumul_total_neg
+        # fin de pour chaque annee
+    #debut de decompte final
+    log.critical("pour action: cumul total posit : {}".format(cumul_total_posit))
+    log.info("pour info : cumul total neg: {}".format(cumul_total_neg))
+    cumul_total = cumul_total_posit + cumul_total_neg
+    log.critical("prejudice si chiffre positif: {}".format(cumul_total))
+    
+            
+    
+            
+                
+################################################
+#  SORTI DE LA FONCTION POUR TESTS:
+#  RENVOIE TJS ZERO!
+##############################################
+def eqv_trv_de_sup_paye(mois,annee):
+    cste_h25_payee_mois = 17.33
+    return bonification25(cste_h25_payee_mois)
+
+def bonification25(heures):
+    return heures * 1.25
+
+def bonification50(heures):
+    return heures * 1.50
+
+def bonification100(heures):
+    return heures * 2
+
+
+
+def eqv_trv_de_sup_sem_du(semaine, annee):
+    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee)
+    + eqv_trv_de_sup_sem_du_50(semaine,annee)
+    + eqv_trv_de_sup_sem_du_100(semaine,annee)
+    return e_s
+def eqv_trv_de_sup_sem_du_25(semaine,annee):
+    heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(annee,semaine)
+    log.debug("heures_effectuees_semaine : {}".format(heures_effectuees_semaine))
+    return bonification25(
+        heures_sup_25_effectuees(heures_effectuees_semaine)
+        )
+def eqv_trv_de_sup_sem_du_50(semaine,annee):
+    heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(annee,semaine)
+    return bonification50(
+        heures_sup_50_effectuees(heures_effectuees_semaine)
+        )
+
+def eqv_trv_de_sup_sem_du_100(semaine,annee):
+    heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(annee,semaine)
+    return bonification100(
+        heures_illegales_effectuees(heures_effectuees_semaine)
+        )
+#################################
+# FIN DE SORTIE DES UTILITAIRES DE LA FONCTION
+###############################
 
 def heures_sup_25_effectuees(heures):
     return max(0,seuil(heures, 35, 43))
