@@ -234,14 +234,22 @@ elles permettent donc de déterminer un préjudice.
         import utilitaireDates
         semainesmois = list(utilitaireDates.iterSemaine(annee,mois))
         for semaine in semainesmois:
-            eqv = eqv + eqv_trv_de_sup_sem_du(semaine,annee)
-            phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
-            phrase_debug = phrase_debug.format(eqv, semaine,
-                                               eqv_trv_de_sup_sem_du_25(semaine,annee),
-                                               eqv_trv_de_sup_sem_du_50(semaine,annee),
-                                               eqv_trv_de_sup_sem_du_100(semaine,annee))
-                                               
-            log.debug(phrase_debug)
+            if semaine is not semaine_conges(semaine,annee):
+                eqv = eqv + eqv_trv_de_sup_sem_du(semaine,annee)
+                phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
+                phrase_debug = phrase_debug.format(eqv, semaine,
+                                                   eqv_trv_de_sup_sem_du_25(semaine,annee),
+                                                   eqv_trv_de_sup_sem_du_50(semaine,annee),
+                                                   eqv_trv_de_sup_sem_du_100(semaine,annee))
+                                                   
+                log.debug(phrase_debug)
+            else:
+                phrase_cp = "************************"
+                phrase_cp = phrase_cp + "\nla semaine {} de l annee {} est une semaine de cp"
+                phrase_cp = phrase_cp.format(semaine, annee)
+                phrase_cp = phrase_cp + "\n**********************"
+                log.critical(phrase_cp)
+                
         return eqv
             
             
