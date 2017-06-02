@@ -330,7 +330,17 @@ def eqv_trv_de_sup_sem_du_50(semaine,annee):
 
 def eqv_trv_de_sup_sem_du_100(semaine,annee):
     heures_effectuees_semaine = getCumulHeuresTravailleesSemaine(annee,semaine)
-    return bonification100(
+    if heures_illegales_effectuees(heures_effectuees_semaine) > 0:
+        log_pas_legal = "*********************************"
+        log_pas_legal = log_pas_legal + "\nla semaine {} de l annee {}, {} heures ont été effectuées au delà des 48 heures"
+        log_pas_legal = log_pas_legal.format(semaine, annee, heures_illegales_effectuees(heures_effectuees_semaine))
+        log_pas_legal = log_pas_legal + "\nje les compte à 50% mais cela devrait etre compensé par une valeur supérieure"
+        log_pas_legal = log_pas_legal + "\n***********************"
+        log.critical(log_pas_legal)
+##    return bonification100(
+##        heures_illegales_effectuees(heures_effectuees_semaine)
+##        )
+    return bonification50(
         heures_illegales_effectuees(heures_effectuees_semaine)
         )
 #################################
