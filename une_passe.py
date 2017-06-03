@@ -196,7 +196,7 @@ elles permettent donc de déterminer un préjudice.
         cste_h25_payee_mois = 17.33
         return bonification25(cste_h25_payee_mois)
 
-    def eqv_trv_de_sup_paye_sem(semaine, annee):
+    def eqv_trv_de_sup_sem_paye(semaine, annee):
         heures_cp = self.bdd().getCumulHeuresCpSemaine(semaine,annee)
         paye_semaine = 4 - (heures_cp * 4 /39 )
         if heures_cp:
@@ -208,6 +208,23 @@ elles permettent donc de déterminer un préjudice.
             phrase_cp_nuls = phrase_cp_nuls.format(paye_semaine)
             log.debug(phrase_cp_nuls)
         return bonification25(paye_semaine)
+
+    def eqv_trv_de_sup_paye(mois,annee):
+        eqv = 0
+        import utilitaireDates
+        semainesmois = list(utilitaireDates.iterSemaine(annee,mois))
+        for semaine in semainesmois:
+            eqv = eqv + eqv_trv_de_sup_sem_paye(semaine,annee)
+            phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
+            phrase_debug = phrase_debug.format(eqv, semaine,
+                                                eqv_trv_de_sup_sem_du_25(semaine,annee),
+                                                eqv_trv_de_sup_sem_du_50(semaine,annee),
+                                                eqv_trv_de_sup_sem_du_100(semaine,annee))
+                                                   
+            log.debug(phrase_debug)
+               
+        return eqv
+        
 
 
 
@@ -249,22 +266,15 @@ elles permettent donc de déterminer un préjudice.
         import utilitaireDates
         semainesmois = list(utilitaireDates.iterSemaine(annee,mois))
         for semaine in semainesmois:
-            if semaine is not semaine_conges(semaine,annee):
-                eqv = eqv + eqv_trv_de_sup_sem_du(semaine,annee)
-                phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
-                phrase_debug = phrase_debug.format(eqv, semaine,
-                                                   eqv_trv_de_sup_sem_du_25(semaine,annee),
-                                                   eqv_trv_de_sup_sem_du_50(semaine,annee),
-                                                   eqv_trv_de_sup_sem_du_100(semaine,annee))
+            eqv = eqv + eqv_trv_de_sup_sem_du(semaine,annee)
+            phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
+            phrase_debug = phrase_debug.format(eqv, semaine,
+                                                eqv_trv_de_sup_sem_du_25(semaine,annee),
+                                                eqv_trv_de_sup_sem_du_50(semaine,annee),
+                                                eqv_trv_de_sup_sem_du_100(semaine,annee))
                                                    
-                log.debug(phrase_debug)
-            else:
-                phrase_cp = "************************"
-                phrase_cp = phrase_cp + "\nla semaine {} de l annee {} est une semaine de cp"
-                phrase_cp = phrase_cp.format(semaine, annee)
-                phrase_cp = phrase_cp + "\n**********************"
-                log.critical(phrase_cp)
-                
+            log.debug(phrase_debug)
+               
         return eqv
             
             
@@ -335,7 +345,7 @@ def bonification100(heures):
 
 
 def eqv_trv_de_sup_sem_du(semaine, annee):
-    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee) - eqv_trv_de_sup_sem_paye(semaine,annee)
+    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee)
     + eqv_trv_de_sup_sem_du_50(semaine,annee)
     + eqv_trv_de_sup_sem_du_100(semaine,annee)
     return e_s
