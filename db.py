@@ -909,8 +909,21 @@ class bibliothecaire_dba (object):
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
             # car déjà fourni
             # sinon ben def converter_timestamp, sqlite3.register_converter("timestamp", converter_timestamp)
-            self.dicorequetes['lecture'].setdefault('',
-                                                    ''' ''')
+            self.dicorequetes['lecture'].setdefault('periodes_cp_entre_deux_dates',
+                                                    '''SELECT
+                                                            debut_poste as "debut_poste [timestamp]",
+                                                            fin_poste as "fin_poste [timestamp]"
+                                                        FROM
+                                                            planning
+                                                        WHERE
+                                                            date( planning.debut_poste )
+                                                        BETWEEN
+                                                                date ( ? )
+                                                            AND
+                                                                date ( ? )
+                                                        ; -- NON CLASSE
+                                                    
+                                                    ''')
 
             self.dicorequetes['lecture'].setdefault('periodes_travaillees_entre_deux_dates',
                                                     '''SELECT
