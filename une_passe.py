@@ -192,9 +192,13 @@ elles permettent donc de déterminer un préjudice.
     anneesdispo = list(db.bdd().iterAnneesDispo())
     moisannee = list(range(1,13))
     
-    def eqv_trv_de_sup_paye(mois,annee):
+    def eqv_trv_de_sup_paye_obsolete(mois,annee):
         cste_h25_payee_mois = 17.33
         return bonification25(cste_h25_payee_mois)
+
+    def eqv_trv_de_sup_paye_sem(semaine, annee):
+        paye_semaine = 4 - (self.bdd().getCumulHeuresCpSemaine(semaine,annee) * 4 /39 )
+        return bonification25(paye_semaine)
 
     def bonification25(heures):
         return heures * 1.25
