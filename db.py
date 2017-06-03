@@ -524,7 +524,7 @@ class realdb (object):
                                                (d1, d2)
                                      ).fetchall()
 
-    def getListePeriodesCpEntreDeuxDates(self, premier_jour,dernier_jour):
+    def getListePeriodesCpEntreDeuxDates(self, d1,d2):
         """ datetime.date x datetime.date -> [(dtime_deb, dtime_fin),..(,)]"""
         return self.getCnx().execute(self.getBibliothecaireDba()
                                      .getRequeteLectureByName('periodes_cp_entre_deux_dates'),
