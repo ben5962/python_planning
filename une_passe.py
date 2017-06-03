@@ -200,6 +200,8 @@ elles permettent donc de déterminer un préjudice.
         paye_semaine = 4 - (self.bdd().getCumulHeuresCpSemaine(semaine,annee) * 4 /39 )
         return bonification25(paye_semaine)
 
+
+
     def bonification25(heures):
         return heures * 1.25
     
@@ -324,7 +326,7 @@ def bonification100(heures):
 
 
 def eqv_trv_de_sup_sem_du(semaine, annee):
-    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee)
+    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee) -
     + eqv_trv_de_sup_sem_du_50(semaine,annee)
     + eqv_trv_de_sup_sem_du_100(semaine,annee)
     return e_s
