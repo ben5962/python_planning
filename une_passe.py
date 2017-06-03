@@ -203,7 +203,18 @@ elles permettent donc de déterminer un préjudice.
         return bonification25(cste_h25_payee_mois)
 
     def sup25_deja_paye(heures_cp):
-        return 4 - (heures_cp * 4 /39 )
+        try:
+            
+            if heures_cp > 39:
+                raise ValueError('heures cp doit etre <= 39 j ai eu {} heures'.format(heures_cp))
+        except(ValueError, v):
+            print("je passe heures cp au max soit 39. corrigez err ds cp")
+            heures_cp = 39
+        finally:
+            valeur = 4 - (heures_cp * 4 /39 )
+            return valeur
+            
+                  
 
     def eqv_trv_de_sup_sem_paye(semaine, annee):
         heures_cp = getCumulHeuresCpSemaine(semaine,annee)
