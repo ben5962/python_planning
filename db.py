@@ -153,6 +153,9 @@ class bdd (object):
     def valider(self):
         self.getRealDb().valider()
 
+    def getCumulHeuresCpSemaine(self,annee,num_semaine):
+        pass
+
 
     def getCumulHeuresTravailleesSemaine(self,annee,num_semaine):
         """ doit renvoyer un nombre:
