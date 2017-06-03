@@ -202,19 +202,7 @@ elles permettent donc de déterminer un préjudice.
         cste_h25_payee_mois = 17.33
         return bonification25(cste_h25_payee_mois)
 
-    def sup25_deja_paye(heures_cp):
-        log.info("appel de sup25 deja paye avec heures_cp {}".format(heures_cp))
-        try:
-            
-            if heures_cp > 39:
-                raise ValueError('heures cp doit etre <= 39 j ai eu {} heures'.format(heures_cp))
-        except(ValueError, v):
-            print("je passe heures cp au max soit 39. corrigez err ds cp")
-            heures_cp = 39
-        finally:
-            valeur = 4 - (heures_cp * 4 /39 )
-            return valeur
-            
+
                   
 
     def eqv_trv_de_sup_sem_paye(semaine, annee):
@@ -343,13 +331,34 @@ elles permettent donc de déterminer un préjudice.
     log.critical("prejudice si chiffre positif: {}".format(cumul_total))
     
             
-    
+####################"
+# sortie de la f pour tests:
+# le trt d exception est sans effet
+##############################
+def sup25_deja_paye(heures_cp):
+    log.info("appel de sup25 deja paye avec heures_cp {}".format(heures_cp))
+    try:
+        
+        if heures_cp > 39:
+            raise ValueError('heures cp doit etre <= 39 j ai eu {} heures'.format(heures_cp))
+    except(ValueError, v):
+        print("je passe heures cp au max soit 39. corrigez err ds cp")
+        heures_cp = 39
+    finally:
+        valeur = 4 - (heures_cp * 4 /39 )
+        return valeur
+#############################
+# fin de sortie de f
+##########################
+            
             
                 
 ################################################
 #  SORTI DE LA FONCTION POUR TESTS:
 #  RENVOIE TJS ZERO!
 ##############################################
+
+
 def eqv_trv_de_sup_paye(mois,annee):
     cste_h25_payee_mois = 17.33
     return bonification25(cste_h25_payee_mois)

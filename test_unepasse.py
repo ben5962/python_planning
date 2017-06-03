@@ -45,7 +45,10 @@ class TestUnePasse(unittest.TestCase):
         # doit produire 0 heures sup payées si semaine de type repos
         #
         import une_passe
-        duree_semaine_cp = 39
+        self.assertEqual(une_passe.sup25_deja_paye(0),4)
+        self.assertEqual(une_passe.sup25_deja_paye(39),0)
+        self.assertEqual(une_passe.sup25_deja_paye(150),0)
+        
         
 
     
