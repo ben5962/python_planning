@@ -341,12 +341,15 @@ def sup25_deja_paye(heures_cp):
         
         if heures_cp > 39:
             raise ValueError('heures cp doit etre <= 39 j ai eu {} heures'.format(heures_cp))
-    except(ValueError, v):
-        print("je passe heures cp au max soit 39. corrigez err ds cp")
-        heures_cp = 39
-    finally:
         valeur = 4 - (heures_cp * 4 /39 )
         return valeur
+    except(ValueError):
+        print("je passe heures cp au max soit 39. corrigez err ds cp")
+        heures_cp = 39
+        valeur = 4 - (heures_cp * 4 /39 )
+        return valeur
+
+
 #############################
 # fin de sortie de f
 ##########################
