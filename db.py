@@ -521,55 +521,16 @@ class realdb (object):
                                                .getRequeteLectureByName('periodes_travaillees_entre_deux_dates'),
                                                (d1, d2)
                                      ).fetchall()
-    
-    def getCumulCPSemaine(self,annee=None,num_semaine=None, scal=None):
-        """ doit fournir le nombre d heures de CP sur une semaine"""
-        from metier import semaineCalendaire
-        """éléments potentiellement foireux:
-            - la différence entre deux dates en sqlite
-            - l'agrégat de la différence entre deux dates en sqlite
-            je préfère
-            1) récupérer dans une liste tous les couples
-            (période_travaillée.debut_période, période_travaillée.fin_période)
-            FAIRE LA SOMME, SUR CHAQUE tuple de la liste de résultats de :
-            2) créer un objet horodatage PYTHON pour chaque chaine horodatage de ce couple
-            3) faire la différence fin_période - début_période (qui donne un timedelta en heures)
-            4) convertir ce timedelta en entier (ne pas faire la somme sur des timedeltas,
-            ca convertirait automatiquement en jours etc... je veux des heures
 
-            """
-        #1) récupérer la liste de tous les couples ....
-        if annee is not None and num_semaine is not None:
-            s = semaineCalendaire(annee,num_semaine)
-        else:
-            if  scal is not None:
-                s = scal
-            else:
-                raise("erreur sur paramètres")
-        tuple_premier_et_dernier_jour_semaine = s.getPremierEtDernierJourSemaine()
-        premier_jour = tuple_premier_et_dernier_jour_semaine[0]
-        dernier_jour = tuple_premier_et_dernier_jour_semaine[1]
-        """ il faut transformer getBornes pour que la requete sql soit acceptée par sqlite
-            comme requête entre deux bornes:
-            - de (datetime.datetime(...), datetime.datetime(...))
-                à ... no se"""
- 
-        # la somme des elements d une liste vide est une liste vide
-        # donc osef si getListePeriodesTravaileesEntreDeuxDates renvoie rien
-        result = sum(
-            [ timedelta_to_hour(
-                diff_entre_deux_datestimes(
-                    parse(t[0]),
-                    parse(t[1])
-                    )
-                )
-            for t in self.getListePeriodesCPEntreDeuxDates(
-                premier_jour,
-                dernier_jour
-                )
-              ]
-            )
-        return result    
+    def getListePeriodesCpEntreDeuxDates(self, premier_jour,dernier_jour):
+        """ datetime.date x datetime.date -> [(dtime_deb, dtime_fin),..(,)]"""
+        return self.getCnx().execute(self.getBibliothecaireDba()
+                                     .getRequeteLectureByName('periodes_cp_entre_deux_dates'),
+                                     (d1, d2)
+                                     ).fetchall()
+        
+    
+
 
 
     def getNombrePostesSaisis(self):
@@ -948,6 +909,8 @@ class bibliothecaire_dba (object):
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
             # car déjà fourni
             # sinon ben def converter_timestamp, sqlite3.register_converter("timestamp", converter_timestamp)
+            self.dicorequetes['lecture'].setdefault('',
+                                                    ''' ''')
 
             self.dicorequetes['lecture'].setdefault('periodes_travaillees_entre_deux_dates',
                                                     '''SELECT
