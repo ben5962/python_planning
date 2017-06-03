@@ -326,7 +326,7 @@ def bonification100(heures):
 
 
 def eqv_trv_de_sup_sem_du(semaine, annee):
-    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee) -
+    e_s = eqv_trv_de_sup_sem_du_25(semaine,annee) - eqv_trv_de_sup_sem_paye(semaine,annee)
     + eqv_trv_de_sup_sem_du_50(semaine,annee)
     + eqv_trv_de_sup_sem_du_100(semaine,annee)
     return e_s
