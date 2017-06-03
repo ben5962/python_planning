@@ -154,7 +154,7 @@ class bdd (object):
         self.getRealDb().valider()
 
     def getCumulHeuresCpSemaine(self,annee,num_semaine):
-        pass
+        return self.getRealDb().getCumulHeuresCpSemaine(annee,num_semaine)
 
 
     def getCumulHeuresTravailleesSemaine(self,annee,num_semaine):
