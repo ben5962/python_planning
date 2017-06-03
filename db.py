@@ -448,7 +448,9 @@ class realdb (object):
             - de (datetime.datetime(...), datetime.datetime(...))
                 à ... no se"""
         liste_resultats = self.getListePeriodesCpEntreDeuxDates(
-            premier_jour,dernier_jour)
+            premier_jour,
+            dernier_jour
+            )
         # la somme des elements d une liste vide est une liste vide
         # donc osef si getListePeriodesTravaileesEntreDeuxDates renvoie rien
         result = sum(
@@ -916,11 +918,15 @@ class bibliothecaire_dba (object):
                                                         FROM
                                                             planning
                                                         WHERE
-                                                            date( planning.debut_poste )
-                                                        BETWEEN
-                                                                date ( ? )
+                                                                planning.categorie_poste = 'absence'
                                                             AND
-                                                                date ( ? )
+                                                                nom_poste = 'CP'
+                                                            AND
+                                                                date( planning.debut_poste )
+                                                                    BETWEEN
+                                                                        date ( ? )
+                                                                    AND
+                                                                        date ( ? )
                                                         ; -- NON CLASSE
                                                     
                                                     ''')
