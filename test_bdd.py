@@ -152,16 +152,22 @@ class testbdd(unittest.TestCase):
         
         self.assertEqual(table_trouvee, nom_table)
 
-    def test_DB_realdb_test_table_repos_existe(self):
-        # vrai si db repos existe
-        import db
-        r = db.realdb()
-        verite = True if 'table_CP' in list(( t for t in r.listerToutesTablesSQL() if r.acces_premier_element_tuple(t) != "pff")) else False
-        self.assertTrue(verite)
-
-    def test_DB_realdb_test_table_repos_non_vide(self):
-        # vrai si repos non vide
-        raise NotImplementedError
+##    def test_DB_realdb_test_table_repos_existe(self):
+          # cette fonction n est plus necessaire car
+          # la table repos n est plus necessaire:
+          # les données CP existent déjà dans la table planning.
+##        # vrai si db repos existe
+##        import db
+##        r = db.realdb()
+##        verite = True if 'table_CP' in list(( t for t in r.listerToutesTablesSQL() if r.acces_premier_element_tuple(t) != "pff")) else False
+##        self.assertTrue(verite)
+##
+##    def test_DB_realdb_test_table_repos_non_vide(self):
+          # cette fonction n est plus necessaire car
+          # la table repos n est plus nécessaire:
+          # les données CP existent déjà dans la table planning
+##        # vrai si repos non vide
+##        raise NotImplementedError
 
     def test_DB_realdb_test_Extraction_semaine_repos(self):
         # recuperer une semaine de repos

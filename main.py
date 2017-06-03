@@ -1,5 +1,4 @@
-
-b#-*-coding:utf8;-*-
+#-*-coding:utf8;-*-
 #qpy:3
 #qpy:console
 
