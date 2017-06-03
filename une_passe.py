@@ -197,7 +197,16 @@ elles permettent donc de déterminer un préjudice.
         return bonification25(cste_h25_payee_mois)
 
     def eqv_trv_de_sup_paye_sem(semaine, annee):
-        paye_semaine = 4 - (self.bdd().getCumulHeuresCpSemaine(semaine,annee) * 4 /39 )
+        heures_cp = self.bdd().getCumulHeuresCpSemaine(semaine,annee)
+        paye_semaine = 4 - (heures_cp * 4 /39 )
+        if heures_cp:
+            phrase_cp_non_nuls = "en semaine {}, {} heures de cp ramenent les hsup payéees de 4 à {}"
+            phrase_cp_non_nuls = phrase_cp_non_nuls.format(semaine, annee, paye_semaine)
+            log.critical(phrase_cp_non_nuls)
+        else:
+            phrase_cp_nuls = "{} heures ont été payées à 25% au titre de la mens des heures de 35 à 39h"
+            phrase_cp_nuls = phrase_cp_nuls.format(paye_semaine)
+            log.debug(phrase_cp_nuls)
         return bonification25(paye_semaine)
 
 
