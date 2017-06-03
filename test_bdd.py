@@ -172,7 +172,11 @@ class testbdd(unittest.TestCase):
     def test_DB_realdb_test_Extraction_semaine_repos(self):
         # recuperer une semaine de repos
         # verifier que cela constitue bien 39 heures
-        raise NotImplementedError
+        import db
+        r = db.realdb()
+        duree_semaine_cp = r.getCumulHeuresCp(2016,37)
+        self.assertEqual(duree_semaine_cp,39)
+        
 
     def test_DB_realdb_test_isSemaine_repos(self):
         # renvoie vrai si une semaine (semanen annee)
@@ -185,10 +189,8 @@ class testbdd(unittest.TestCase):
         # et une semaine au cours de laquelle il y a des heures travaillées
         raise NotImplementedError
 
-    def test_DB_realdb_test_si_semaine_repos_sautée(self):
-        # doit produire 0 heures sup payées si semaine de type repos
-        #
-        raise NotImplementedError
+
+        
 
     def test_DB_realdb_test_si_mois_comportant_semaineCP_compte_que_sem_rav(self):
         # prendre un exemple comportant 3 semaines.

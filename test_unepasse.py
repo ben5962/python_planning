@@ -39,7 +39,13 @@ class TestUnePasse(unittest.TestCase):
         self.assertEqual(une_passe.heures_sup_25_effectuees(35),0)
         self.assertEqual(une_passe.heures_sup_25_effectuees(36),1)
         self.assertEqual(une_passe.heures_sup_25_effectuees(43),8)
-        self.assertEqual(une_passe.heures_sup_25_effectuees(44),8)        
+        self.assertEqual(une_passe.heures_sup_25_effectuees(44),8)
+
+    def test_DB_realdb_test_si_semaine_repos_sautée(self):
+        # doit produire 0 heures sup payées si semaine de type repos
+        #
+        import une_passe
+        duree_semaine_cp = 39
         
 
     
