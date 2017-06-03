@@ -215,14 +215,14 @@ elles permettent donc de déterminer un préjudice.
         semainesmois = list(utilitaireDates.iterSemaine(annee,mois))
         for semaine in semainesmois:
             eqv = eqv + eqv_trv_de_sup_sem_paye(semaine,annee)
-            phrase_debug = "eqv vaut {} lors semaine {} (sem25: {} sem50: {} sem100: {}"
-            phrase_debug = phrase_debug.format(eqv, semaine,
-                                                eqv_trv_de_sup_sem_du_25(semaine,annee),
-                                                eqv_trv_de_sup_sem_du_50(semaine,annee),
-                                                eqv_trv_de_sup_sem_du_100(semaine,annee))
-                                                   
+            phrase_debug = "eqv trv de paye vaut {} lors semaine {}"
+            phrase_debug = phrase_debug.format(
+                eqv_trv_de_sup_sem_paye(semaine,annee),
+                semaine
+                )
+                                                
             log.debug(phrase_debug)
-               
+              
         return eqv
         
 
