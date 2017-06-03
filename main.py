@@ -78,4 +78,5 @@ if __name__ == '__main__':
         boss.doit()
     
 # modif de val pour test autologin ssh key fonctionne
-# modif de val pour test envoi tache plannifiee 5 min
+# modif de val pour test envoi tache plannifiee 5 min  plop
+# plop plop plop ca doit se lancer
