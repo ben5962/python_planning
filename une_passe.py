@@ -69,6 +69,12 @@ def getCumulHeuresTravailleesSemaine(a,s,methode=db.bdd().getCumulHeuresTravaill
     except TypeError:
         return int(methode)
 
+def getCumulHeuresCpSemaine(a,s,methode = db.bdd().getCumulHeuresCpSemaine):
+    try:
+        return int( methode(a,s))
+    except TypeError:
+        return int(methode)
+
 def gen_heures_sup_semaines(aaaa, num_sem, hsup25payees=0, hsup50payees=0):
     c = getCumulHeuresTravailleesSemaine(aaaa,num_sem)
     hs = [ c,
@@ -197,7 +203,7 @@ elles permettent donc de déterminer un préjudice.
         return bonification25(cste_h25_payee_mois)
 
     def eqv_trv_de_sup_sem_paye(semaine, annee):
-        heures_cp = self.bdd().getCumulHeuresCpSemaine(semaine,annee)
+        heures_cp = getCumulHeuresCpSemaine(semaine,annee)
         paye_semaine = 4 - (heures_cp * 4 /39 )
         if heures_cp:
             phrase_cp_non_nuls = "en semaine {}, {} heures de cp ramenent les hsup payéees de 4 à {}"
