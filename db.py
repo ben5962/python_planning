@@ -462,7 +462,7 @@ class realdb (object):
                 premier_jour,
                 dernier_jour
                 )
-              ] if Self.getListePeriodesTravailleesEntreDeuxDates(premier_jour,dernier_jour) else [0]  #pour les autres langages
+              ] if self.getListePeriodesTravailleesEntreDeuxDates(premier_jour,dernier_jour) else [0]  #pour les autres langages
             )
         return result
 
@@ -609,7 +609,7 @@ et que la base a le bon schemas"""
     def TestDonneesDbExistent(self):
         """teste si chaque table comporte au moins mettons 50 enregistrements"""
         verite = True
-        listerToutesTablesSQLImportantes = ( t for t in self.listerToutesTablesSQL() if self.acces_premier_element(t) != "pff")
+        listerToutesTablesSQLImportantes = ( t for t in self.listerToutesTablesSQL() if self.acces_premier_element_tuple(t) != "pff")
         for t in listerToutesTablesSQLImportantes:
             nom_table = self.acces_premier_element_tuple(t)
             e = self.compterEnregistrements(nom_table)

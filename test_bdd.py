@@ -152,6 +152,43 @@ class testbdd(unittest.TestCase):
         
         self.assertEqual(table_trouvee, nom_table)
 
+    def test_DB_realdb_test_table_repos_existe(self):
+        # vrai si db repos existe
+        import db
+        r = db.realdb()
+        verite = True if 'table_CP' in list(( t for t in r.listerToutesTablesSQL() if r.acces_premier_element_tuple(t) != "pff")) else False
+        self.assertTrue(verite)
+
+    def test_DB_realdb_test_table_repos_non_vide(self):
+        # vrai si repos non vide
+        raise NotImplementedError
+
+    def test_DB_realdb_test_Extraction_semaine_repos(self):
+        # recuperer une semaine de repos
+        # verifier que cela constitue bien 39 heures
+        raise NotImplementedError
+
+    def test_DB_realdb_test_isSemaine_repos(self):
+        # renvoie vrai si une semaine (semanen annee)
+        # passee en param est de type congés payés.
+        raise NotImplementedError
+
+    def test_DB_realdb_test_isSemaine_hybride(self):
+        # renvoie vrai si une semaine indiquée est à la fois
+        # une semaine pleine de CP
+        # et une semaine au cours de laquelle il y a des heures travaillées
+        raise NotImplementedError
+
+    def test_DB_realdb_test_si_semaine_repos_sautée(self):
+        # doit produire 0 heures sup payées si semaine de type repos
+        #
+        raise NotImplementedError
+
+    def test_DB_realdb_test_si_mois_comportant_semaineCP_compte_que_sem_rav(self):
+        # prendre un exemple comportant 3 semaines.
+        # vérifier le calcul
+        raise NotImplemented
+
 
     def test_DB_syntaxte_sql(self):
         #item 313
