@@ -202,9 +202,12 @@ elles permettent donc de déterminer un préjudice.
         cste_h25_payee_mois = 17.33
         return bonification25(cste_h25_payee_mois)
 
+    def sup25_deja_paye(heures_cp):
+        return 4 - (heures_cp * 4 /39 )
+
     def eqv_trv_de_sup_sem_paye(semaine, annee):
         heures_cp = getCumulHeuresCpSemaine(semaine,annee)
-        paye_semaine = 4 - (heures_cp * 4 /39 )
+        paye_semaine = sup25_deja_paye(heures_cp)
         if heures_cp:
             phrase_cp_non_nuls = "en semaine {}, {} heures de cp ramenent les hsup payéees de 4 à {}"
             phrase_cp_non_nuls = phrase_cp_non_nuls.format(semaine, annee, paye_semaine)
