@@ -203,6 +203,7 @@ elles permettent donc de déterminer un préjudice.
         return bonification25(cste_h25_payee_mois)
 
     def sup25_deja_paye(heures_cp):
+        log.info("appel de sup25 deja paye avec heures_cp {}".format(heures_cp))
         try:
             
             if heures_cp > 39:
