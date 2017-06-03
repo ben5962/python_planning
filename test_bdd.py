@@ -187,7 +187,7 @@ class testbdd(unittest.TestCase):
     def test_DB_realdb_test_si_mois_comportant_semaineCP_compte_que_sem_rav(self):
         # prendre un exemple comportant 3 semaines.
         # vérifier le calcul
-        raise NotImplemented
+        raise NotImplementedError
 
 
     def test_DB_syntaxte_sql(self):
