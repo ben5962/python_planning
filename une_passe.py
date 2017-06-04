@@ -282,7 +282,7 @@ elles permettent donc de déterminer un préjudice.
                                                 eqv_trv_de_sup_sem_du_50(semaine,annee),
                                                 eqv_trv_de_sup_sem_du_100(semaine,annee))
                                                    
-            log.debug(phrase_debug)
+            log.info(phrase_debug)
                
         return eqv
             
