@@ -174,7 +174,7 @@ class testbdd(unittest.TestCase):
         # verifier que cela constitue bien 39 heures
         import db
         r = db.realdb()
-        duree_semaine_cp = r.getCumulHeuresCp(2016,37)
+        duree_semaine_cp = r.getCumulHeuresCpSemaine(2016,37)
         self.assertEqual(duree_semaine_cp,39)
         
 
