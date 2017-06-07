@@ -983,7 +983,79 @@ class bibliothecaire_dba (object):
                                                     ;
                                                     """)
 
-            
+            """
+TODO: crea vue prenant en compte les jours feries
+afin de
+crea vue fusionner prenant en compte les heures sup
+- les jours ou jours fériers
+SELECT 
+
+strftime('%Y', 
+ 
+		datetime(planning.debut_poste, 'start of day', 'weekday 0')
+		) as annee,
+date(planning.debut_poste) as jour,
+round((JulianDay(planning.fin_poste) - 
+JulianDay(planning.debut_poste)) * 24, 2) as duree,
+planning.nom_poste
+		
+FROM
+	planning
+WHERE
+   planning.categorie_poste = 'absence'
+ AND
+	planning.nom_poste = 'CP'
+
+
+
+'vue_35_semaine'
+
+
+
+
+
+
+-- je veux choisir
+-- chaque annee_cp, mois_cp, semaine
+--    (le rattachement des semaines au mois est 
+--    sur le mode des heures sup)
+-- afin de renvoyer le nombre de jours de cp chaque semaine
+
+
+-- premiere partie du select:
+-- je veux l'annee à laquelle est rattachée le jour cp
+-- les jours cp sont sur une seule journee
+-- je peux donc prendre la date de debut_poste
+--   ou 
+--   la date de fin_poste
+--  mais la conversion en date est inutile:
+-- stfrtime prend indifférement une ch date ou datetime
+
+     -- l'annee de 
+	  -- la semaine à laquelle appartient
+	  -- le dernier jour 
+	  -- de la semaine de cp
+
+
+
+SELECT 
+
+strftime('%Y', 
+ 
+		datetime(planning.debut_poste, 'start of day', 'weekday 0')
+		) as annee,
+planning.debut_poste,
+planning.fin_poste,
+planning.nom_poste
+		
+FROM
+	planning
+WHERE
+   planning.categorie_poste = 'absence'
+ AND
+	planning.nom_poste = 'CP'
+	
+	; """
             self.dicorequetes['crea'].setdefault('creer_tables',
                                                  '''CREATE TABLE {} (
                                                     debut_poste TEXT,
