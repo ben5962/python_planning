@@ -783,6 +783,10 @@ leurs contraintes"""
         self.getCnx().execute(
             self.getBibliothecaireDba()
             .getRequeteCreaByName('vue_35_semaine')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_CP_semaine')
             )        
         log.debug("schemas doit maintenant etre cree")
                               
@@ -982,6 +986,23 @@ class bibliothecaire_dba (object):
                                                     GROUP BY annee, mois, semaine
                                                     ;
                                                     """)
+
+            self.dicorequetes['crea'].setdefault('vue_CP_semaine',
+                                                 """
+                                                CREATE VIEW 'vue_CP_semaine'
+                                                AS
+                                                SELECT
+                                                    strftime('%Y', 
+                                                        datetime(planning.debut_poste, 'start of day', 'weekday 0')) as annee,
+                                                 strftime('%m', datetime(planning.debut_poste, 'start of day', 'weekday 0')) as mois, 
+                                                 ( strftime('%j', datetime(planning.debut_poste, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine, 
+                                                 round( SUM( (JulianDay(fin_poste) - JulianDay(debut_poste)) * 24 ), 2 )as heure_semaine_travaillees
+                                                 FROM 
+                                                    planning 
+                                                WHERE 
+                                                    planning.nom_poste = 'CP'
+                                                GROUP BY annee, mois, semaine
+                                                ;""")
 
             """
 TODO: crea vue prenant en compte les jours feries
