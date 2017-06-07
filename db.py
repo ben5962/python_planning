@@ -780,6 +780,10 @@ leurs contraintes"""
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_trig_aj_periode_trav_from_copy_poste')
             )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_35_semaine')
+            )        
         log.debug("schemas doit maintenant etre cree")
                               
     
@@ -965,6 +969,19 @@ class bibliothecaire_dba (object):
                                                     limit 1
                                                     ;
                                                     ''')
+            self.dicorequetes['crea'].setdefault('vue_35_semaine',
+                                                   """
+                                                    CREATE VIEW vue_35_semaine
+                                                    AS
+                                                    SELECT
+                                                        strftime('%Y', datetime(jour_travaille, 'start of day', 'weekday 0')) as annee,
+                                                        strftime('%m', datetime(jour_travaille, 'start of day', 'weekday 0')) as mois,
+                                                        ( strftime('%j', datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine,
+                                                        round( SUM( (JulianDay(fin_periode) - JulianDay(debut_periode)) * 24  ) )as heure_semaine_travaillees
+                                                    FROM periodes_travaillees
+                                                    GROUP BY annee, mois, semaine
+                                                    ;
+                                                    """)
 
             
             self.dicorequetes['crea'].setdefault('creer_tables',
