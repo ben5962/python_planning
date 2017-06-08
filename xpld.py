@@ -1,6 +1,7 @@
 import constantes
 
-
+import devpy.develop as log
+log.setLevel('DEBUG')
 
 
 
@@ -200,6 +201,7 @@ class xpld(object):
 
 
     def valider_ligne(ligne):
+        log.debug("valider ligne avec {}".format(ligne))
         #item 56
         import re
         #item 57
