@@ -1,7 +1,7 @@
 import constantes
 
 import devpy.develop as log
-log.setLevel('DEBUG')
+log.setLevel('INFO')
 
 
 
