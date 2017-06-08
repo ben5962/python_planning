@@ -560,14 +560,14 @@ class realdb (object):
         """saisit toutes les entrees dans la base"""
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
         for entree in iterateurEntrees:
-            log.debug("ecriture de ", entree),
+            log.debug("ecriture de {}".format(str(entree))),
             self.getCnx().execute(texterequete, entree)
         self.getCnx().commit()
 
     def saisir_entree(self, tuple_entree):
         """ saisit 1 entree dans la base """
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
-        log.debug("ecriture de ", tuple_entree),
+        log.debug("ecriture de {}".format(str(entree))),
         self.getCnx().execute(texterequete, tuple_entree)
 
     def valider(self):
