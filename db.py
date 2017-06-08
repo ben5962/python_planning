@@ -567,7 +567,7 @@ class realdb (object):
     def saisir_entree(self, tuple_entree):
         """ saisit 1 entree dans la base """
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
-        log.debug("ecriture de {}".format(str(entree))),
+        log.debug("ecriture de {}".format(str(tuple_entree))),
         self.getCnx().execute(texterequete, tuple_entree)
 
     def valider(self):
