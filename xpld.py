@@ -204,12 +204,14 @@ class xpld(object):
 
     def validate_year(arg_chaine):
         #item 50
-        return xpld._validate_int_between(chaine=arg_chaine,mini=2002,maxi=2017)
+        #return xpld._validate_int_between(chaine=arg_chaine,mini=2002,maxi=2017)
         #item 49
-        #try:
-        #    return int(chaine) > 0 and int(chaine) < 13
-        #except ValueError:
-        #    return False
+        log.debug("lancement de validate year avec chaine = {}".format(arg_chaine))
+        if int(arg_chaine) > 2002 and int(arg_chaine) < 2018:
+            return True
+        else:
+            log.debug("year ne peut prendre comme valeur que de 2002 à 2017 dans {}".format(arg_chaine))
+            return False
 
 
     def valider_ligne(ligne):
