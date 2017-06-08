@@ -167,14 +167,17 @@ class xpld(object):
         return functools.reduce((lambda x,y: xpld._validate_int_between(chaine=x,mini=1,maxi=31) and xpld._validate_int_between(chaine=y,mini=1,maxi=31)) ,xpld.split_virg(days))
 
 
-    def validate_month(arg_chaine):
+    def validate_month(chaine):
         #item 43
-        return xpld._validate_int_between(chaine=arg_chaine,mini=1,maxi=12)
+        #return xpld._validate_int_between(chaine=arg_chaine,mini=1,maxi=12)
         #item 35
-        #try:
-        #    return int(chaine) > 0 and int(chaine) < 13
-        #except ValueError:
-        #    return False
+        try:
+            if int(chaine) > 0 and int(chaine) < 13:
+                return True
+            else:
+                raise ValueError("'mois' ne peut prendre comme valeur que de 1 à 12 dans {}".format(chaine))
+        except ValueError:
+            return False
 
 
     def validate_poste(chaine):
