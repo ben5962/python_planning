@@ -162,7 +162,7 @@ class xpld(object):
 
     def validate_day(day):
         log.debug("lancement de validate day avec chaine = {}".format(day))
-        if int(chaine) > 0 and int chaine < 32:
+        if int(day) > 0 and int(day) < 32:
             return True
         else:
             log.debug("jour ne peut prendre comme valeur que de 1 à 31 dans {}".format(day))
@@ -171,10 +171,15 @@ class xpld(object):
 
     def validate_days(days):
         #item 73
-        import functools
+        #import functools
         #item 72
-        return functools.reduce((lambda x,y: xpld._validate_int_between(chaine=x,mini=1,maxi=31) and xpld._validate_int_between(chaine=y,mini=1,maxi=31)) ,xpld.split_virg(days))
-
+        #return functools.reduce((lambda x,y: xpld._validate_int_between(chaine=x,mini=1,maxi=31) and xpld._validate_int_between(chaine=y,mini=1,maxi=31)) ,xpld.split_virg(days))
+        verite = True
+        for jour in xpld.split_virg(days):
+            if not xpld.validate_day(jour):
+                verite = False
+                break
+        return verite
 
     def validate_month(chaine):
         #item 43
