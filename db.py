@@ -1012,7 +1012,7 @@ class bibliothecaire_dba (object):
 
             self.dicorequetes['crea'].setdefault('vue_35_semaine_hsup_sans_bonif',
                                                 """
-                                                CREATE 'vue_35_semaine_hsup_sans_bonif'
+                                                CREATE VIEW 'vue_35_semaine_hsup_sans_bonif'
                                                 AS
                                                 SELECT strftime('%Y', datetime(jour_travaille, 'start of day', 'weekday 0')) as annee,
                                                 strftime('%m', datetime(jour_travaille, 'start of day', 'weekday 0')) as mois,
