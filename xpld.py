@@ -160,6 +160,14 @@ class xpld(object):
         #item 22
         return [int(i) for i in chaine.split(",")]
 
+    def validate_day(day):
+        log.debug("lancement de validate day avec chaine = {}".format(day))
+        if int(chaine) > 0 and int chaine < 32:
+            return True
+        else:
+            log.debug("jour ne peut prendre comme valeur que de 1 à 31 dans {}".format(day))
+            return False
+
 
     def validate_days(days):
         #item 73
@@ -172,12 +180,11 @@ class xpld(object):
         #item 43
         #return xpld._validate_int_between(chaine=arg_chaine,mini=1,maxi=12)
         #item 35
-        try:
-            if int(chaine) > 0 and int(chaine) < 13:
-                return True
-            else:
-                raise ValueError("'mois' ne peut prendre comme valeur que de 1 à 12 dans {}".format(chaine))
-        except ValueError:
+        log.debug("lancement de validate month avec chaine = {}".format(chaine))
+        if int(chaine) > 0 and int(chaine) < 13:
+            return True
+        else:
+            log.debug("mois ne peut prendre comme valeur que de 1 à 12 dans {}".format(chaine))
             return False
 
 
