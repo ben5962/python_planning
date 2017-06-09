@@ -792,6 +792,11 @@ leurs contraintes"""
             self.getBibliothecaireDba()
             .getRequeteCreaByName('vue_35_semaine_hsup_sans_bonif')
             )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('plus_de_48_heures')
+            )
+        
 
         
         log.debug("schemas doit maintenant etre cree")
@@ -1043,6 +1048,19 @@ class bibliothecaire_dba (object):
                                                 ;
                                                 """
                                                  )
+            self.dicorequetes['crea'].setdefault('plus_de_48_heures',
+                                                 """
+                                                create view 'plus_de_48'
+                                                    as
+                                                select
+                                                    *
+                                                from
+                                                    vue_35_semaine 
+                                                where
+                                                    vue_35_semaine.heure_semaine_travaillees
+                                                    > 48
+                                                ;
+                                                """)
 
             """
 TODO: crea vue prenant en compte les jours feries
