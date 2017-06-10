@@ -801,6 +801,11 @@ leurs contraintes"""
             self.getBibliothecaireDba()
             .getRequeteCreaByName('hs_dues_hebdo')
             )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_heures_annu_janjan')
+            )
+        
         
         log.debug("schemas doit maintenant etre cree")
                               
@@ -1151,6 +1156,23 @@ class bibliothecaire_dba (object):
                                                 """
                                                  
                                                  )
+            self.dicorequetes['crea'].setdefault('vue_heures_annu_janjan',
+                                                 """
+                                                CREATE view 'VUE_heures_annu_janjan'
+                                                AS
+                                                SELECT 
+                                                strftime('%Y', datetime(jour_travaille))
+                                                as annee, 
+                                                strftime('%m', datetime(jour_travaille)) as mois, 
+                                                ( strftime('%j', datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine,
+                                                 round( SUM( (JulianDay(fin_periode) - JulianDay(debut_periode)) * 24 ) )
+                                                 as heure_semaine_travaillees 
+                                                FROM periodes_travaillees 
+                                                GROUP BY annee
+
+                                                ;
+
+                                                    """)
 
             """
 TODO: crea vue prenant en compte les jours feries
