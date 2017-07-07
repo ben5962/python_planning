@@ -352,16 +352,16 @@ p.addText("Where does the text after a footnote go?")
 textdoc.text.addElement(H(outlinelevel=1,text='An Image'))
 p = P()
 textdoc.text.addElement(p)
-# add the image
-# img_path is the local path of the image to include
-img_path = r'C:\Users\Utilisateur\Documents\GitHub\python_planning\PHOTOS 028.jpg'
-#img_path = 'D:\Document\PersonalInfoRemixBook\examples\ch17\campanile_fog.jpg'
-href = textdoc.addPicture(img_path)
-f = Frame(name="graphics1", anchortype="paragraph", width="5in", height="6.6665in", 
-zindex="0")
-p.addElement(f)
-img = Image(href=href, type="simple", show="embed", actuate="onLoad")
-f.addElement(img)
+# # add the image
+# # img_path is the local path of the image to include
+# img_path = r'C:\Users\Utilisateur\Documents\GitHub\python_planning\PHOTOS 028.jpg'
+# #img_path = 'D:\Document\PersonalInfoRemixBook\examples\ch17\campanile_fog.jpg'
+# href = textdoc.addPicture(img_path)
+# f = Frame(name="graphics1", anchortype="paragraph", width="5in", height="6.6665in", 
+# zindex="0")
+# p.addElement(f)
+# img = Image(href=href, type="simple", show="embed", actuate="onLoad")
+# f.addElement(img)
 
 # save the document
 textdoc.save(fname)

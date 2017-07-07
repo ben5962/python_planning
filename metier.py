@@ -100,10 +100,10 @@ class moisCalendaire(object):
      m = moisComptable(2014,1)
      for s in m.iterSemainesHsup30():
          print(s)
-    >>> (2013, 53)
-    >>> (2014, 1)
-    >>> (2014, 2)
-    >>> (2014, 3)"""
+    #(2013, 53)
+    # (2014, 1)
+    # (2014, 2)
+    #(2014, 3)"""
     def __init__(self, annee, num_mois):
         self.annee = annee
         self.mois = num_mois
@@ -129,7 +129,7 @@ class semaineCalendaire(object):
     s.getHoroDebutEtHoroDebutSplus1BornantSemaine()
     ou:
     s = semaineCalendaire(2010,25).getBornesEnFrancais()
-    >>> (datetime.datetime(2010,6,4,0,0,0),datetime.datetime(2010,6,11,0,0,0)
+    # (datetime.datetime(2010,6,4,0,0,0),datetime.datetime(2010,6,11,0,0,0)
     la bornde de fin n est pas le dernier instant de la semaine mais
     le premier instant de la semaine suivante afin de partitionner le mois
     comptable"""
