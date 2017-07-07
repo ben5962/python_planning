@@ -7,7 +7,8 @@ from metier import diff_entre_deux_datestimes
 
 
 from dateutil.parser import parse
-
+import devpy.develop as log
+from distutils.log import Log
 class bdd (object):
     """
     les données, indépendemment de leur mode d obtention
@@ -131,12 +132,16 @@ class bdd (object):
     import calendrierComptable
     
 
-    def __init__(self):
+    def __init__(self,realdb=None):
         #self.setListeNomsEtapesVerificationMensuelle()
-        self.setRealDb()
+        self.setRealDb(realdb)
 
-    def setRealDb(self):
-        self.realdb = realdb()
+    def setRealDb(self, realdb=None):
+        import db
+        if realdb is None:
+            self.realdb = db.realdb()
+        else:
+            self.realdb = realdb
 
     def getRealDb(self):
         #une  UNIQUE instance de RealDb()! 
@@ -148,6 +153,9 @@ class bdd (object):
 
     def valider(self):
         self.getRealDb().valider()
+
+    def getCumulHeuresCpSemaine(self,annee,num_semaine):
+        return self.getRealDb().getCumulHeuresCpSemaine(annee,num_semaine)
 
 
     def getCumulHeuresTravailleesSemaine(self,annee,num_semaine):
@@ -176,7 +184,8 @@ class bdd (object):
     def verifier_travail_saisie_planning(self):
         """verifie que le nombre de saisies dans la base n est pas nul"""
         nombre_postes_saisis = self.getRealDb().getNombrePostesSaisis()
-        print("le nombre d elements de planning saisis est de : {}"
+        log.debug()
+        log.debug("le nombre d elements de planning saisis est de : {}"
               .format(nombre_postes_saisis)
               )
         if nombre_postes_saisis:  #vrai si non nul
@@ -187,7 +196,7 @@ class bdd (object):
     def verifier_travail_saisie_periodes_travaillees(self):
         """verifie que le nombre de saisies dans la base n est pas nul"""
         nombre_postes_saisis = self.getRealDb().getNombrePeriodesTravailleesSaisies()
-        print("le nombre d elements de périodes travaillées saisies est de : {}"
+        log.debug("le nombre d elements de périodes travaillées saisies est de : {}"
               .format(nombre_postes_saisis)
               )
         if nombre_postes_saisis:  #vrai si non nul
@@ -358,29 +367,105 @@ class realdb (object):
         # la db a le bon schemas
         # structure
         #self.cnx = "" # initialise par setCnx
-        self.setCnx()
+        #self.setCnx()
         
 
     def setContentDb(self):
         """remplit la base via larbin si pas remplie"""
         if not self.__nb_lignes_db(): # faux <=> renvoie 0
-            print("remplissons la base: elle ne contient aucune entrée actuellement")
+            log.debug("remplissons la base: elle ne contient aucune entrée actuellement")
+            import db
+            b = db.bdd(realdb = self)
             import larbin
-            l = larbin.larbin()
+            l = larbin.larbin(bdd = b)
             l.saisir()
             
             
         else:
-            print("base déjà remplie, rien à faire")
-            print("ont déjà été saisis {} postes et {} périodes travaillées".format(self.getNombrePostesSaisis(),
+            log.debug("base déjà remplie, rien à faire")
+            log.debug("ont déjà été saisis {} postes et {} périodes travaillées".format(self.getNombrePostesSaisis(),
                                                                                     self.getNombrePeriodesTravailleesSaisies()
                                                                                     )
                   )
 
     def __nb_lignes_db(self):
         return self.getNombrePostesSaisis()
+
+    def iterSemainesMoinsDe35Heures(self,borne_etudiee):
+        """trouver les semaines de l annees où
+            j ai travaille mois de <borne_etudiee> heures.
+            utilisation : r = realdb()
+            r.iterSemainesMoinsDe35heures(39) pour
+            compter le nombre de semaines qui comporteront
+            des heures négatives - 39 heures payées moins de 39 faites -
+            certaines semaines comprennent des congés payés.
+            il faut combler les trous des semaines en trop
+            après cela il faudra borner cela à l'années:
+            à la fin d une année on arrête de compter"""
+        listeSemainesMoinsDe35Heures = []
+        from db import bdd
+        import utilitaireDates
+        for annee in self.iterAnneesDispo():
+            for mois in bdd().iterMonthNumber():
+                for semaine in utilitaireDates.iterSemaine(annee,mois):
+                    duree = self.getCumulHeuresTravailleesSemaine(annee,semaine) + self.getEqvCongesSemaine(annee,semaine)
+                    """à cette fin, il faut remplir une table des repos sur le meme modele que horaires trav """
+
+                    if duree < borne_etudiee:
+                        le_tuple = (annee, semaine, duree, 39 - duree)
+                        print(le_tuple)
+                        listeSemainesMoinsDe35Heures.append(le_tuple)
+        return listeSemainesMoinsDe35Heures
+                    
             
-            
+    def getCumulHeuresCpSemaine(self,annee=None,num_semaine=None, scal=None):
+        """ doit fournir le nombre d heures travaillees sur une semaine"""
+        from metier import semaineCalendaire
+        """éléments potentiellement foireux:
+            - la différence entre deux dates en sqlite
+            - l'agrégat de la différence entre deux dates en sqlite
+            je préfère
+            1) récupérer dans une liste tous les couples
+            (période_travaillée.debut_période, période_travaillée.fin_période)
+            FAIRE LA SOMME, SUR CHAQUE tuple de la liste de résultats de :
+            2) créer un objet horodatage PYTHON pour chaque chaine horodatage de ce couple
+            3) faire la différence fin_période - début_période (qui donne un timedelta en heures)
+            4) convertir ce timedelta en entier (ne pas faire la somme sur des timedeltas,
+            ca convertirait automatiquement en jours etc... je veux des heures
+
+            """
+        #1) récupérer la liste de tous les couples ....
+        if annee is not None and num_semaine is not None:
+            s = semaineCalendaire(annee,num_semaine)
+        else:
+            if  scal is not None:
+                s = scal
+            else:
+                raise("erreur sur paramètres")
+        tuple_premier_et_dernier_jour_semaine = s.getPremierEtDernierJourSemaine()
+        premier_jour = tuple_premier_et_dernier_jour_semaine[0]
+        dernier_jour = tuple_premier_et_dernier_jour_semaine[1]
+        """ il faut transformer getBornes pour que la requete sql soit acceptée par sqlite
+            comme requête entre deux bornes:
+            - de (datetime.datetime(...), datetime.datetime(...))
+                à ... no se"""
+        liste_resultats = self.getListePeriodesCpEntreDeuxDates(
+            premier_jour,
+            dernier_jour
+            )
+        # la somme des elements d une liste vide est une liste vide
+        # donc osef si getListePeriodesTravaileesEntreDeuxDates renvoie rien
+        result = sum(
+            [ timedelta_to_hour(
+                diff_entre_deux_datestimes(
+                    parse(t[0]),
+                    parse(t[1])
+                    )
+                )
+            for t in liste_resultats
+              ]
+            )
+        return result            
 
 
     def getCumulHeuresTravailleesSemaine(self,annee=None,num_semaine=None, scal=None):
@@ -416,7 +501,8 @@ class realdb (object):
                 à ... no se"""
         tuple_resultat = self.getListePeriodesTravailleesEntreDeuxDates(
             premier_jour,dernier_jour)
-
+        # la somme des elements d une liste vide est une liste vide
+        # donc osef si getListePeriodesTravaileesEntreDeuxDates renvoie rien
         result = sum(
             [ timedelta_to_hour(
                 diff_entre_deux_datestimes(
@@ -428,7 +514,7 @@ class realdb (object):
                 premier_jour,
                 dernier_jour
                 )
-              ]
+              ] if self.getListePeriodesTravailleesEntreDeuxDates(premier_jour,dernier_jour) else [0]  #pour les autres langages
             )
         return result
 
@@ -439,6 +525,16 @@ class realdb (object):
                                                .getRequeteLectureByName('periodes_travaillees_entre_deux_dates'),
                                                (d1, d2)
                                      ).fetchall()
+
+    def getListePeriodesCpEntreDeuxDates(self, d1,d2):
+        """ datetime.date x datetime.date -> [(dtime_deb, dtime_fin),..(,)]"""
+        return self.getCnx().execute(self.getBibliothecaireDba()
+                                     .getRequeteLectureByName('periodes_cp_entre_deux_dates'),
+                                     (d1, d2)
+                                     ).fetchall()
+        
+    
+
 
 
     def getNombrePostesSaisis(self):
@@ -466,14 +562,14 @@ class realdb (object):
         """saisit toutes les entrees dans la base"""
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
         for entree in iterateurEntrees:
-            print("ecriture de ", entree),
+            log.debug("ecriture de {}".format(str(entree))),
             self.getCnx().execute(texterequete, entree)
         self.getCnx().commit()
 
     def saisir_entree(self, tuple_entree):
         """ saisit 1 entree dans la base """
         texterequete = self.getBibliothecaireDba().getRequeteEcritureByName('saisir_entree')
-        print("ecriture de ", tuple_entree),
+        log.debug("ecriture de {}".format(str(tuple_entree))),
         self.getCnx().execute(texterequete, tuple_entree)
 
     def valider(self):
@@ -505,16 +601,53 @@ class realdb (object):
 et s assurer que le fichier existe qu il est une base sqlite3
 et que la base a le bon schemas"""
         self.fichierdb = filename
-        db = self.getFichierDb()
-        if not self.TestFichierDbExiste():
-            """le fichier est cree en cnnct a fichier
-q existe pas et fermant cnx"""
-            print(self.getFichierDb() + "existe pas . le cree.""")
-            self.createDbFile()
-        print("teste si le schemas existe")
-        if not self.TestSchemasDbExiste():
-            print("schemas existe pas ou pas conforme. le cree""")
-            self.setSchemaDb() # effet de bord: ecrit dans un fichier sql
+        
+        def crea_fich_si_necessaire():
+            db = self.getFichierDb()
+            if not self.TestFichierDbExiste():
+                """le fichier est cree en cnnct a fichier
+        q existe pas et fermant cnx"""
+                log.debug(self.getFichierDb() + "existe pas . le cree.""")
+                self.createDbFile()
+        crea_fich_si_necessaire()
+        def commentaire3():
+            log.debug("teste si le schemas existe")
+            if not self.TestSchemasDbExiste():
+                log.debug("schemas existe pas ou pas conforme. le cree""")
+                self.setSchemaDb() # effet de bord: ecrit dans un fichier sql
+
+    def acces_premier_element_tuple(self,t):
+        return t[0]
+
+    def TestDonneesDbExistent(self):
+        """teste si chaque table comporte au moins mettons 50 enregistrements"""
+        verite = True
+        listerToutesTablesSQLImportantes = ( t for t in self.listerToutesTablesSQL() if self.acces_premier_element_tuple(t) != "pff")
+        for t in listerToutesTablesSQLImportantes:
+            nom_table = self.acces_premier_element_tuple(t)
+            e = self.compterEnregistrements(nom_table)
+            print ("pour la table {} j ai compte {} enregistrements"
+                   .format(t, e))
+            if e < 50:
+                print ("c est moins de 50")
+                verite = False
+        return verite
+    
+    def listerToutesTablesSQL(self):
+        """renvoie la liste des tables sql dans une liste de tuples [ (aa,), (bb,)] 
+        parce que pas le choix, c est le format de """
+        return self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteMetaByName('lister_tables_sql')
+            )
+
+    def compterEnregistrements(self,nom_table):
+        """ renvoie le nombre d enr d une table"""
+        req = self.getBibliothecaireDba().getRequeteMetaByName('nombre_enr_table_param')
+        req = req.replace('<TABLE>', nom_table)
+        return self.acces_premier_element_tuple(
+            self.getCnx().execute(req).fetchone()
+            )
 
 
     def TestSchemasDbExiste(self):
@@ -525,7 +658,7 @@ TODO verifier si les champs de chaque table correspondent
 en comparant la table speciale sqlite a une table custom de meme forme
 stockant les noms de tables, leurs noms et types de champs et
 leurs contraintes"""
-        print("verif si schemas db existe et conforme")
+        log.debug("verif si schemas db existe et conforme")
         ListeTables = self.getCnx().execute(self.getBibliothecaireDba()
                                 .getRequeteMetaByName('non_vide_si_table_planning_existe')[0],
                                             self.getBibliothecaireDba().getRequeteMetaByName('non_vide_si_table_planning_existe')[1]).fetchall()
@@ -536,14 +669,20 @@ leurs contraintes"""
         TAILLE_HEADER_SQLITE3 = 100
         from os.path import isfile, getsize
         if not isfile(filename):
-            print (filename + "est pas un fich")
+            log.error(filename + " est pas un fich")
             return False
         if getsize (filename) < TAILLE_HEADER_SQLITE3:
-            print ("trop petit pr e fic sqlitr3")
+            log.error("trop petit pr e fic sqlitr3")
+            
             return False
         with open (filename, 'rb') as fd :
             header = fd.read (TAILLE_HEADER_SQLITE3)
-            return header [:16] == 'SQLite format 3\x00'
+            verite = (header [:16] == b'SQLite format 3\x00')
+            if not verite:
+                log.error("{}: mauvais header sqlite3".format(filename)) 
+            else:
+                log.info("fichier {} est bien de type sqlite3".format(filename))
+            return verite
             
     def TestFichierDbExiste(self):
         """teste l existance d un FICHIER sqlite3"""
@@ -559,7 +698,7 @@ leurs contraintes"""
         #isolation_level = None
         masque_options = param1 | param2
         #self.cnx = sqlite3.connect(db,isolation_level, masque_options)
-        self.cnx = sqlite3.connect(db,param1 | param2)
+        self.cnx = sqlite3.connect(db)
 
     def TestAttributCnxExisteEtCnxOuverte(self):
         """doit provoquer un attributError si self.cnx existe pas et un sqlite.programmingError si la cnx est fermée. ne sert à rien d autre"""
@@ -578,21 +717,26 @@ leurs contraintes"""
         try:
             self.TestAttributCnxExisteEtCnxOuverte()
         except (AttributeError,ProgrammingError,OperationalError) as e :
-            print("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle", e)
+            log.debug("soit attribut cnx de realdb existe pas, soit objet_cnx pointe sur cnx fermée. dans les deux cas je dois creer un attribut cnx pour real_db et lui affecter une connexion ouverte donc en creer une nouvelle")
+            log.debug(e)
             self._connexion_effective()
         finally:
-            print("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
+            log.debug("que la connexion et l attribut cnx existaient ou pas avant cet appel, maintenant tout est en ordre")
 
 
-    def fermerCnx(self,cnx):
+    def fermerCnx(self):
         """ferme une cnx et le dit pr debug"""
-        print("je ferme la cnx")
-        cnx.close()
+        log.debug("je ferme la cnx")
+        self.getCnx().close()
 
     def createDbFile(self):
         """cree un fichier db"""
         con = self.getCnx()
-        self.fermerCnx(con)
+        con.execute('CREATE TABLE pff( mouais TEXT);')
+        con.commit()
+        con.execute('INSERT INTO pff(mouais) VALUES ("gibberish");')
+        con.commit()
+        self.fermerCnx()
         
             
             
@@ -615,7 +759,7 @@ leurs contraintes"""
 
     def setSchemaDb(self):
         """cree la structure de la base si elle n existe pas"""
-        print("creation du schemas")
+        log.debug("creation du schemas")
         self.getCnx().execute(
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_tables_datetimeexperimentalsqlite3')
@@ -639,7 +783,38 @@ leurs contraintes"""
             self.getBibliothecaireDba()
             .getRequeteCreaByName('creer_trig_aj_periode_trav_from_copy_poste')
             )
-        print("schemas doit maintenant etre cree")
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_35_semaine')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_CP_semaine')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_35_semaine_hsup_sans_bonif')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('plus_de_48_heures')
+            )
+        
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('hs_dues_hebdo')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_heures_annu_janjan')
+            )
+        self.getCnx().execute(
+            self.getBibliothecaireDba()
+            .getRequeteCreaByName('vue_cumul_annu_juin_a_mai')
+            )
+        
+        
+        log.debug("schemas doit maintenant etre cree")
                               
     
               
@@ -664,10 +839,39 @@ sans faire un fetchone qui renvoie un resultat """
         texterequete = self.getBibliothecaireDba().getRequeteLectureByName('tous_postes')
         return self.renvoyerCurseurRequeteLecture(texterequete)
 
+    def acces_premier_element_tuple(self,tup):
+        return tup[0]
+
     def iterAnneesDispo(self):
         """renvoie un iterateur aux annees disponibles"""
         texterequete = self.getBibliothecaireDba().getRequeteLectureByName('annees_dispo')
-        return self.renvoyerCurseurRequeteLecture(texterequete)
+        for a in self.renvoyerCurseurRequeteLecture(texterequete):
+            annee = a[0]
+            yield int(annee)
+
+    def getNomsTables(self):
+        """renvoie le nom des tables dispo hors sqlite_master """
+        texterequete = self.getBibliothecaireDba(
+            ).getRequeteMetaByName('nom_des_tables')
+        return [
+            member[1] for member in self.getCnx(
+                ).execute(texterequete).fetchall()]
+
+
+    def getNomsColonnes(self, nom_table):
+        """ renvoie le nom des colonnes d une table existante"""
+        texterequete = self.getBibliothecaireDba(
+            ).getRequeteLectureByName('astuce_noms_colonnes')
+        texterequete = texterequete.replace('<NOM_TABLE>', nom_table)
+        return next(
+            zip(*self.renvoyerCurseurRequeteLecture(texterequete).description)
+            )
+        
+        
+
+        
+
+    
     
 
 class bibliothecaire_dba (object):
@@ -691,6 +895,16 @@ class bibliothecaire_dba (object):
             self.dicorequetes.setdefault('ecriture', {})
             self.dicorequetes.setdefault('meta', {})
             self.dicorequetes.setdefault('crea', {})
+
+            self.dicorequetes['meta'].setdefault('nom_des_tables',
+                                                 '''
+                                                SELECT
+                                                *
+                                                FROM
+                                                sqlite_master
+                                                WHERE type="table"
+                                                ;
+                                                ''')
             self.dicorequetes['meta'].setdefault('non_vide_si_table_planning_existe',
                                                  ("SELECT name from sqlite_master where type='table' and name = ?",
                                                   (nom_table_liste_postes,)
@@ -706,10 +920,50 @@ class bibliothecaire_dba (object):
                                                     FROM
                                                     periodes_travaillees
                                                     ;''')
+            self.dicorequetes['meta'].setdefault('lister_tables_sql',
+                                                 '''SELECT 
+                                                         name 
+                                                    FROM
+                                                        sqlite_master
+                                                    WHERE 
+                                                        type="table"
+                                                        ;
+                                                        ''')
+            self.dicorequetes['meta'].setdefault('nombre_postes_saisis',
+                                                       "SELECT COUNT(*) FROM "
+                                                        + nom_table_liste_postes
+                                                       )
+            self.dicorequetes['meta'].setdefault('nombre_enr_table_param',
+                                                 '''SELECT 
+                                                     COUNT(*)
+                                                    FROM
+                                                        <TABLE>
+                                                    ;
+                                                 ''')
+            
             # convertisseur de texte vers timestamp existe par defaut. rend non nécessaire l ecriture d un convertisseur sqllite3->py
             # pour le text iso8601 string (sqlite3) -> timestamp (python)
             # car déjà fourni
             # sinon ben def converter_timestamp, sqlite3.register_converter("timestamp", converter_timestamp)
+            self.dicorequetes['lecture'].setdefault('periodes_cp_entre_deux_dates',
+                                                    '''SELECT
+                                                            debut_poste as "debut_poste [timestamp]",
+                                                            fin_poste as "fin_poste [timestamp]"
+                                                        FROM
+                                                            planning
+                                                        WHERE
+                                                                planning.categorie_poste = 'absence'
+                                                            AND
+                                                                nom_poste = 'CP'
+                                                            AND
+                                                                date( planning.debut_poste )
+                                                                    BETWEEN
+                                                                        date ( ? )
+                                                                    AND
+                                                                        date ( ? )
+                                                        ; -- NON CLASSE
+                                                    
+                                                    ''')
 
             self.dicorequetes['lecture'].setdefault('periodes_travaillees_entre_deux_dates',
                                                     '''SELECT
@@ -736,6 +990,306 @@ class bibliothecaire_dba (object):
                                                      + nom_table_liste_postes
                                                      + """WHERE  d > ?  AND f <= ?""", "" )
                                                     )
+            self.dicorequetes['lecture'].setdefault('astuce_noms_colonnes',
+                                                    '''
+                                                    SELECT
+                                                    *
+                                                    FROM
+                                                    <NOM_TABLE>
+                                                    limit 1
+                                                    ;
+                                                    ''')
+            self.dicorequetes['crea'].setdefault('vue_35_semaine',
+                                                   """
+                                                    CREATE VIEW vue_35_semaine
+                                                    AS
+                                                    SELECT
+                                                        strftime('%Y', datetime(jour_travaille, 'start of day', 'weekday 0')) as annee,
+                                                        strftime('%m', datetime(jour_travaille, 'start of day', 'weekday 0')) as mois,
+                                                        ( strftime('%j', datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine,
+                                                        round( SUM( (JulianDay(fin_periode) - JulianDay(debut_periode)) * 24  ) )as heure_semaine_travaillees
+                                                    FROM periodes_travaillees
+                                                    GROUP BY annee, mois, semaine
+                                                    ;
+                                                    """)
+
+            self.dicorequetes['crea'].setdefault('vue_CP_semaine',
+                                                 """
+                                                CREATE VIEW 'vue_CP_semaine'
+                                                AS
+                                                SELECT
+                                                    strftime('%Y', 
+                                                        datetime(planning.debut_poste, 'start of day', 'weekday 0')) as annee,
+                                                 strftime('%m', datetime(planning.debut_poste, 'start of day', 'weekday 0')) as mois, 
+                                                 ( strftime('%j', datetime(planning.debut_poste, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine, 
+                                                 round( SUM( (JulianDay(fin_poste) - JulianDay(debut_poste)) * 24 ), 2 )as heure_semaine_CP
+                                                 FROM 
+                                                    planning 
+                                                WHERE 
+                                                    planning.nom_poste = 'CP'
+                                                GROUP BY annee, mois, semaine
+                                                ;""")
+
+            self.dicorequetes['crea'].setdefault('vue_35_semaine_hsup_sans_bonif',
+                                                """
+                                                CREATE VIEW 'vue_35_semaine_hsup_sans_bonif'
+                                                AS
+                                                SELECT strftime('%Y', datetime(jour_travaille, 'start of day', 'weekday 0')) as annee,
+                                                strftime('%m', datetime(jour_travaille, 'start of day', 'weekday 0')) as mois,
+                                                ( strftime('%j', datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine, 
+                                                round( SUM( (JulianDay(fin_periode) - JulianDay(debut_periode)) * 24 ) )as heure_semaine_travaillees,
+                                                4 as heure_sup_payee_25,
+                                                 max(0, 
+                                                     min(round( SUM( 
+                                                                     (JulianDay(fin_periode)
+                                                                     -
+                                                                     JulianDay(debut_periode)) 
+                                                * 24 ) ) - 35, 43 - 35)
+                                                )	as heures_sup_25_effectuees_semaine ,
+                                                
+                                                 max(0, 
+                                                     min(round( SUM( 
+                                                     (JulianDay(fin_periode) - JulianDay(debut_periode)) 
+                                            		* 24 ) ) - 43, 48 - 43)
+                                                )	as heures_sup_50_effectuees_semaine ,
+                                                
+                                                max(0, 
+                                                     min(round( SUM( 
+                                                     (JulianDay(fin_periode) - JulianDay(debut_periode)) 
+                                                        * 24 ) ) - 48, 1000 - 48)
+                                                    )	as heures_sup_50_ille_semaine 	
+                                                FROM periodes_travaillees
+                                                GROUP BY annee, mois, semaine
+                                                ;
+                                                """
+                                                 )
+            self.dicorequetes['crea'].setdefault('plus_de_48_heures',
+                                                 """
+                                                create view 'plus_de_48'
+                                                    as
+                                                select
+                                                    *
+                                                from
+                                                    vue_35_semaine 
+                                                where
+                                                    vue_35_semaine.heure_semaine_travaillees
+                                                    > 48
+                                                ;
+                                                """)
+
+            self.dicorequetes['crea'].setdefault('hs_dues_hebdo',
+                                                 """
+                                                CREATE VIEW
+                                                    'hs_dues_hebdo'
+                                                AS
+                                                SELECT
+                                                    table_hs_hebdo.a as a,
+                                                    table_hs_hebdo.m as m,
+                                                    table_hs_hebdo.s as s,
+                                                    table_hs_hebdo.t as t,
+                                                    table_hs_hebdo.hs_25_hebdo - table_hs_hebdo.cte as hs_25_dues,
+                                                    table_hs_hebdo.hs_50_hebdo as h50_l,
+                                                    table_hs_hebdo.hs_ille_hebdo as h50_i,
+                                                    table_hs_hebdo.hs_50_hebdo + table_hs_hebdo.hs_ille_hebdo as hs_50_dues,
+                                                    (table_hs_hebdo.hs_25_hebdo - table_hs_hebdo.cte) * 1.25 as eqv_t_hs_25_dues,
+                                                    table_hs_hebdo.hs_50_hebdo * 1.5 as eqv_t_hs_50_l_dues,
+                                                    table_hs_hebdo.hs_ille_hebdo * 1.5 as eqv_t_hs_50_i_dues,
+                                                    (table_hs_hebdo.hs_50_hebdo * 1.5) + (table_hs_hebdo.hs_ille_hebdo * 1.5) + (table_hs_hebdo.hs_25_hebdo - table_hs_hebdo.cte) * 1.25 as eqv_t_tot_h_dues
+                                                FROM
+                                                    (
+                                                    SELECT 
+                                                        table_h_hebdo.annee as a, 
+                                                        table_h_hebdo.mois as m,
+                                                        table_h_hebdo.semaine as s,
+                                                        table_h_hebdo.trav as t,
+                                                        4 as cte,
+                                                        max(0, min(table_h_hebdo.trav - 35, 43 - 35) )  as hs_25_hebdo,
+                                                        max(0, min(table_h_hebdo.trav - 43, 48 - 43) ) as hs_50_hebdo,
+                                                        max(0, min(table_h_hebdo.trav - 48, 1000 - 48) )  as hs_ille_hebdo
+                                                    FROM 
+                                                        ( SELECT
+                                                        --  LA SUBQUERY DE BASE : a m s hs_trav_hebdo
+                                                        -- les périodes
+                                                        -- p1 : année
+                                                        strftime('%Y', 
+                                                                datetime(jour_travaille, 
+                                                                        'start of day', 
+                                                                        'weekday 0')) 
+                                                                as annee, 
+                                                        -- p2: mois
+                                                        strftime('%m', 
+                                                                datetime(jour_travaille, 
+                                                                'start of day', 
+                                                                'weekday 0')) 
+                                                            as mois, 
+                                                        -- p3: semaine
+                                                        ( strftime('%j', 
+                                                                datetime(jour_travaille, 
+                                                                'start of day', 
+                                                                '-3 days', 
+                                                                'weekday 4')) - 1 ) / 7 + 1 
+                                                        as semaine, 
+                                                        -- fin des périodes
+
+                                                        -- début des calculs
+
+                                                        -- c1 heures effectuées dans la semaine
+                                                        -- somme les differences d heures chaque jour.
+                                                        --  technique : la différence est en jour. 
+                                                        --         conversion en heures? * 24. 
+                                                        --          round pour faire bonne mesure. 
+                                                        -- dans le group by, on indique que cette somme se limite
+                                                        --- à la semaine:
+                                                        round( 
+                                                                SUM( 
+                                                                        (
+                                                                            JulianDay(fin_periode) 
+                                                                            - 
+                                                                            JulianDay(debut_periode)
+                                                                        ) 
+                                                                    * 24 )
+				)
+                                                                as trav
+
+
+
+                                                        FROM periodes_travaillees GROUP BY annee, mois, semaine
+                                                        ) table_h_hebdo
+                                                    ) table_hs_hebdo
+                                                            ;
+
+
+                                                
+                                                """
+                                                 
+                                                 )
+            self.dicorequetes['crea'].setdefault('vue_heures_annu_janjan',
+                                                 """
+                                                CREATE view 'VUE_heures_annu_janjan'
+                                                AS
+                                                SELECT 
+                                                strftime('%Y', datetime(jour_travaille))
+                                                as annee, 
+                                                strftime('%m', datetime(jour_travaille)) as mois, 
+                                                ( strftime('%j', datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 as semaine,
+                                                 round( SUM( (JulianDay(fin_periode) - JulianDay(debut_periode)) * 24 ) )
+                                                 as heure_semaine_travaillees 
+                                                FROM periodes_travaillees 
+                                                GROUP BY annee
+
+                                                ;
+
+                                                    """)
+            self.dicorequetes['crea'].setdefault('vue_cumul_annu_juin_a_mai',
+                                                    """create view
+                                                        'vue_cumul_annu_juin_a_mai'
+                                                            as
+                                                            select 
+                                                            sem_annu_juin_a_mai.annee_annu as annee_annu, 
+                                                            sem_annu_juin_a_mai.mois as mois ,
+                                                            sum(sem_annu_juin_a_mai.heure_semaine_travaillees) as vol_annu
+                                                            from 
+
+                                                            -- fonctionne. il faut grouper par annee_annu maintenant
+                                                            (SELECT 
+                                                            CAST(strftime('%Y', datetime(jour_travaille))  AS INTEGER) as repere,
+                                                            CAST(strftime('%m', datetime(jour_travaille))  AS INTEGER) > 5 as bool,
+                                                            strftime('%Y', datetime(jour_travaille)) as resultat_si_vrai,
+                                                            strftime('%Y', datetime(jour_travaille)) - 1 as resultat_si_faux,
+
+                                                            CASE 
+                                                                    WHEN cast(strftime('%m', datetime(jour_travaille)) as INTEGER) > 5 THEN strftime('%Y', datetime(jour_travaille))
+                                                                    ELSE strftime('%Y', datetime(jour_travaille, '-1 year'))
+                                                            END annee_annu, 
+
+                                                            strftime('%Y', datetime(jour_travaille))
+                                                                    as annee, 
+                                                            strftime('%m', datetime(jour_travaille)) as mois, 
+                                                            ( strftime('%j', datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4')) - 1 ) / 7 + 1 
+                                                            as semaine,
+                                                            datetime(jour_travaille, 'start of day', '-3 days', 'weekday 4') as debut_semaine,
+                                                             round( SUM( (JulianDay(fin_periode) - JulianDay(debut_periode)) * 24 ) )
+                                                             as heure_semaine_travaillees 
+                                                            FROM periodes_travaillees 
+                                                            GROUP BY annee_annu, mois, semaine
+                                                            ORDER BY annee_annu, mois, semaine ) sem_annu_juin_a_mai
+                                                            GROUP BY annee_annu
+                                                            ;
+                                                            """)
+
+            """
+TODO: crea vue prenant en compte les jours feries
+afin de
+crea vue fusionner prenant en compte les heures sup
+- les jours ou jours fériers
+SELECT 
+
+strftime('%Y', 
+ 
+		datetime(planning.debut_poste, 'start of day', 'weekday 0')
+		) as annee,
+date(planning.debut_poste) as jour,
+round((JulianDay(planning.fin_poste) - 
+JulianDay(planning.debut_poste)) * 24, 2) as duree,
+planning.nom_poste
+		
+FROM
+	planning
+WHERE
+   planning.categorie_poste = 'absence'
+ AND
+	planning.nom_poste = 'CP'
+
+
+
+'vue_35_semaine'
+
+
+
+
+
+
+-- je veux choisir
+-- chaque annee_cp, mois_cp, semaine
+--    (le rattachement des semaines au mois est 
+--    sur le mode des heures sup)
+-- afin de renvoyer le nombre de jours de cp chaque semaine
+
+
+-- premiere partie du select:
+-- je veux l'annee à laquelle est rattachée le jour cp
+-- les jours cp sont sur une seule journee
+-- je peux donc prendre la date de debut_poste
+--   ou 
+--   la date de fin_poste
+--  mais la conversion en date est inutile:
+-- stfrtime prend indifférement une ch date ou datetime
+
+     -- l'annee de 
+	  -- la semaine à laquelle appartient
+	  -- le dernier jour 
+	  -- de la semaine de cp
+
+
+
+SELECT 
+
+strftime('%Y', 
+ 
+		datetime(planning.debut_poste, 'start of day', 'weekday 0')
+		) as annee,
+planning.debut_poste,
+planning.fin_poste,
+planning.nom_poste
+		
+FROM
+	planning
+WHERE
+   planning.categorie_poste = 'absence'
+ AND
+	planning.nom_poste = 'CP'
+	
+	; """
             self.dicorequetes['crea'].setdefault('creer_tables',
                                                  '''CREATE TABLE {} (
                                                     debut_poste TEXT,

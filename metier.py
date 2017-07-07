@@ -1,3 +1,4 @@
+#-*-coding:utf8;-*-
 """ contient les objets metier cad la description d une
 -Entree Planning
 - jourTravaille
@@ -96,19 +97,20 @@ exte et qqch qui lui permettra d etre envoye et retour dans la base de donnees""
         
 class moisCalendaire(object):
     """ le mois /d une annee/
-    fournit itérateur sur les numeros de semaines:
-     m = moisComptable(2014,1)
-     for s in m.iterSemainesHsup30():
-         print(s)
-    #(2013, 53)
-    # (2014, 1)
-    # (2014, 2)
-    #(2014, 3)"""
+    fournit itÃ©rateur sur les numeros de semaines:
+     >>> m = moisComptable(2014,1)
+     >>> for s in m.iterSemainesHsup30():
+     >>>    print(s)
+    (2013, 53)
+    (2014, 1)
+    (2014, 2)
+    (2014, 3)"""
     def __init__(self, annee, num_mois):
         self.annee = annee
         self.mois = num_mois
 
     def iterSemainesHsup39(self):
+        """ -> (aaaa, num_sem)"""
         import datetime
         import calendar
         cal = calendar.Calendar()
@@ -121,15 +123,30 @@ class moisCalendaire(object):
                                                )
                 )
 
+    def iterSemaine(self):
+        """ num_sem"""
+        import datetime
+        import calendar
+        cal = calendar.Calendar()
+        return (semaine[0].isocalendar()[1]
+                for semaine
+                in cal.monthdatescalendar(self.annee,self.mois)
+                if semaine[6] <= datetime.date(self.annee,
+                                               self.mois,
+                                               calendar.monthrange(self.annee,self.mois)[1]
+                                               )
+                )
+        
+
 
 class semaineCalendaire(object):
     """ les bornes en date d une semaine /d une annee/
-    fournit horodatage début et horodatage fin d une semaine:
+    fournit horodatage dÃ©but et horodatage fin d une semaine:
     s = semaineCalendaire(2010,25)
     s.getHoroDebutEtHoroDebutSplus1BornantSemaine()
     ou:
     s = semaineCalendaire(2010,25).getBornesEnFrancais()
-    # (datetime.datetime(2010,6,4,0,0,0),datetime.datetime(2010,6,11,0,0,0)
+    >>> (datetime.datetime(2010,6,4,0,0,0),datetime.datetime(2010,6,11,0,0,0)
     la bornde de fin n est pas le dernier instant de la semaine mais
     le premier instant de la semaine suivante afin de partitionner le mois
     comptable"""
@@ -140,8 +157,8 @@ class semaineCalendaire(object):
     def getHoroDebutEtHoroDebutSplus1BornantSemaine(self):
         """ doit fournir bornes d une semaine"""
         from datetime import datetime
-        #from dateutil.relativedelta import * #remonté au module
-        #from dateutil.parser import *        # remonté au module
+        #from dateutil.relativedelta import * #remontÃ© au module
+        #from dateutil.parser import *        # remontÃ© au module
         debut = datetime(self.annee,1,1) + relativedelta(
             day=4,  #la permiere SEMAINE ISO contient le 4 jan
             weekday=MO(-1), # rembobiner jusqu'au premier lundi de cette semaine iso
@@ -193,19 +210,19 @@ def date_en_francais(la_date):
         
 def timedelta_to_hour(td):
     """prend un time delta renvoie un nb entier d heures.
-        un time delta possede la méth total_seconds"""
+        un time delta possede la mÃ©th total_seconds"""
     return td.total_seconds() / 3600
 
 def diff_entre_deux_datestimes(d1,d2):
     """renvoie un timedelta de difference entre deux dates"""
     d1.hour
-    d2.hour # si l un des deux échoue alors pas datetime
+    d2.hour # si l un des deux Ã©choue alors pas datetime
     return d2 - d1
         
  
 
 class Regle(object):
-    """ a la responsabilité:
+    """ a la responsabilitÃ©:
 - de creer une regle sous forme de champ d init dans fpaie reelle
 - de creer un seuil
 - de calculer le delta
@@ -243,7 +260,7 @@ appartient
 
 class semaineTravaillee(object):
     """pour les 39h regroupe les jours
-travaillés de la semaine
+travaillÃ©s de la semaine
 chaque semaine comporte 7 jours
 et doit etre rattachee a un mois.
 cas limite: la semaine a cheval 

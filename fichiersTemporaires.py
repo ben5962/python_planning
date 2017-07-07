@@ -12,11 +12,12 @@ def readFichierTemporaire(instance_fichier_temporaire):
     #item 34
     instance_fichier_temporaire.seek(0)
     #item 35
-    return [l.strip() for l in instance_fichier_temporaire.readlines()]
+    return (l.strip() for l in instance_fichier_temporaire.readlines())
 
 
 def readLineFichierTemporaire(instance_fichier_temporaire):
     #item 42
+    instance_fichier_temporaire.seek(0)
     return instance_fichier_temporaire.readline().strip()
 
 

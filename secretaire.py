@@ -41,11 +41,11 @@ class Secretaire(object):
 
     
 
-    def setListeTaches():
+    def setListeTaches(self,listeTaches=None):
         """prend un l ite si fourni, sinon fournit un ite sur une liste de
         taches internes"""
         if listeTaches is None:
-            self.listeTaches = getBdd().getListeTaches()
+            self.listeTaches = self.getBdd().getListeTaches()
 
     def setRapport(self):
         """met un objet rapport odf dansl e contexte commun
@@ -64,8 +64,7 @@ class Secretaire(object):
         nécessaires pour remplir le template"""
         self.variableEnglobante = variableEnglobante
 
-    def setTypeRapport(self,type_rapport):
-        self.type_rapport = type_rapport
+
 
     def setAnnee(self, annee):
         self.annee = annee
@@ -76,9 +75,10 @@ class Secretaire(object):
     
 
 
-    def setTypeRapport(self):
+    def setTypeRapport(self,type_rapport=None):
         """pour l instant en dur """
-        self.TypeRapport = "39heures"
+        if type_rapport is None:
+            self.TypeRapport = "39heures"
 
     def getTypeRapport(self):
         return self.TypeRapport
@@ -148,9 +148,9 @@ class Secretaire(object):
         # "du lundi 1er avril 2015 au dimanche 7 avril 2016"
         # créa d o SemaineCalendaire(aaaa, num_semaine) à la volée car on en a besoin
         s = semaineCalendaire(semaine[0],semaine[1])
-         #c1
+        #c1
         interv_sem = s.getBornesEnFrancais()
-         #c2
+        #c2
         total_hebdo = self.getBdd().getCumulHeuresTravailleesSemaine(scal = s)
         
         self.r().tranche(l, [pres_sem,interv_sem,total_hebdo,"",""])
@@ -251,12 +251,12 @@ class Secretaire(object):
 ##        textdoc = OpenDocumentText()
 ##        self.setHandleFichierODF(textdoc)
 ##        return textdoc
-       from secretary import Renderer
-       engine = Renderer()
-       result = engine.renderer(self.getNomFichierTemplate(), Auditeur=self.getVariableEnglobante())
-       output = open(self.getNomFichierDestination(), 'wb')
-       output.write(result)
-       output.close()
+        from secretary import Renderer
+        engine = Renderer()
+        result = engine.renderer(self.getNomFichierTemplate(), Auditeur=self.getVariableEnglobante())
+        output = open(self.getNomFichierDestination(), 'wb')
+        output.write(result)
+        output.close()
        
         
     

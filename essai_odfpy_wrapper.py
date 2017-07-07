@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 import odfpy_wrapper
 
-
+#
 r = odfpy_wrapper.Rapport("demo_odfpy_wrapper")
 
 # une table, une ligne

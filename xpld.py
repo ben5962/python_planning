@@ -1,6 +1,7 @@
 import constantes
 
-
+import devpy.develop as log
+log.setLevel('INFO')
 
 
 
@@ -159,22 +160,37 @@ class xpld(object):
         #item 22
         return [int(i) for i in chaine.split(",")]
 
+    def validate_day(day):
+        log.debug("lancement de validate day avec chaine = {}".format(day))
+        if int(day) > 0 and int(day) < 32:
+            return True
+        else:
+            log.debug("jour ne peut prendre comme valeur que de 1 à 31 dans {}".format(day))
+            return False
+
 
     def validate_days(days):
         #item 73
-        import functools
+        #import functools
         #item 72
-        return functools.reduce((lambda x,y: xpld._validate_int_between(chaine=x,mini=1,maxi=31) and xpld._validate_int_between(chaine=y,mini=1,maxi=31)) ,xpld.split_virg(days))
+        #return functools.reduce((lambda x,y: xpld._validate_int_between(chaine=x,mini=1,maxi=31) and xpld._validate_int_between(chaine=y,mini=1,maxi=31)) ,xpld.split_virg(days))
+        verite = True
+        for jour in xpld.split_virg(days):
+            if not xpld.validate_day(jour):
+                verite = False
+                break
+        return verite
 
-
-    def validate_month(arg_chaine):
+    def validate_month(chaine):
         #item 43
-        return xpld._validate_int_between(chaine=arg_chaine,mini=1,maxi=12)
+        #return xpld._validate_int_between(chaine=arg_chaine,mini=1,maxi=12)
         #item 35
-        #try:
-        #    return int(chaine) > 0 and int(chaine) < 13
-        #except ValueError:
-        #    return False
+        log.debug("lancement de validate month avec chaine = {}".format(chaine))
+        if int(chaine) > 0 and int(chaine) < 13:
+            return True
+        else:
+            log.debug("mois ne peut prendre comme valeur que de 1 à 12 dans {}".format(chaine))
+            return False
 
 
     def validate_poste(chaine):
@@ -188,15 +204,18 @@ class xpld(object):
 
     def validate_year(arg_chaine):
         #item 50
-        return xpld._validate_int_between(chaine=arg_chaine,mini=2002,maxi=2017)
+        #return xpld._validate_int_between(chaine=arg_chaine,mini=2002,maxi=2017)
         #item 49
-        #try:
-        #    return int(chaine) > 0 and int(chaine) < 13
-        #except ValueError:
-        #    return False
+        log.debug("lancement de validate year avec chaine = {}".format(arg_chaine))
+        if int(arg_chaine) > 2002 and int(arg_chaine) < 2018:
+            return True
+        else:
+            log.debug("year ne peut prendre comme valeur que de 2002 à 2017 dans {}".format(arg_chaine))
+            return False
 
 
     def valider_ligne(ligne):
+        log.debug("valider ligne avec {}".format(ligne))
         #item 56
         import re
         #item 57
