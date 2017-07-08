@@ -73,6 +73,7 @@ pour l isntrant print. peut etre TODO logger.log"""
             pass
             #self.Rapport = odfpy_wrapper.Rapport(self.getNomFichierDestination())
         if self.getTypeSortie() == 'text':
+ 
             pass # trouver une representation arborescente à la con
 
     def getObjetRapport(self):
