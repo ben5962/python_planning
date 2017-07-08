@@ -7,8 +7,8 @@ from metier import diff_entre_deux_datestimes
 
 
 from dateutil.parser import parse
+
 import devpy.develop as log
-from distutils.log import Log
 class bdd (object):
     """
     les données, indépendemment de leur mode d obtention
@@ -156,6 +156,7 @@ class bdd (object):
 
     def getCumulHeuresCpSemaine(self,annee,num_semaine):
         return self.getRealDb().getCumulHeuresCpSemaine(annee,num_semaine)
+
 
 
     def getCumulHeuresTravailleesSemaine(self,annee,num_semaine):
@@ -534,8 +535,8 @@ class realdb (object):
                                      ).fetchall()
         
     
-
-
+        
+    
 
     def getNombrePostesSaisis(self):
         tuple_resultat = self.getCnx().execute(self.getBibliothecaireDba()

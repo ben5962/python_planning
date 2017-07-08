@@ -4,4 +4,7 @@ encoding/auditeur.py=utf8
 encoding/boss.py=utf8
 encoding/db.py=utf8
 encoding/demo_odfpy_mashupguide.py=utf-8
+encoding/essai_odfpy_wrapper.py=utf-8
+encoding/essai_secretaire.py=utf-8
+encoding/main.py=utf8
 encoding/test_bdd.py=utf-8
