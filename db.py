@@ -331,13 +331,14 @@ l annualisation compare les fiches de paye réelles aux fiche de paye theorique.
 les fiches de paye reelles n ont aucune heure sup sauf la derniere qui cumule
 les heures sup de l annee par rapport au seuil legal de 17
 https://www.juristique.org/social/duree-du-travail"""
-    import datetime
+    
     def __init__(self,annee=2016, debut={'heure':0, 'minute': 0, 'jour':1, 'mois':1, 'annee':0}, duree={'heure':0, 'minute': 0, 'jour':0, 'mois':0, 'annee':1}):
         self.annee = annee
+        import datetime
         self.datedebut = datetime.datetime(self.annee,
                                          delta_debut.mois,
                                          delta_debut.jour,
-                                         deltat_debut.heure,
+                                         delta_debut.heure,
                                          delta_debut.minute)
         self.datefin = self.datedebut
         + datetime.timedelta(years=duree.annee)
@@ -760,6 +761,7 @@ leurs contraintes"""
 
     def setSchemaDb(self):
         """cree la structure de la base si elle n existe pas"""
+        """ TODO: déplacer chacune de ces fonctions dans pkg_crea_base """
         log.debug("creation du schemas")
         self.getCnx().execute(
             self.getBibliothecaireDba()
