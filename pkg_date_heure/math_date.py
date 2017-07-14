@@ -117,14 +117,14 @@ class Date(object):
         une semaine appartient toute entière à une année iso.
         une année iso a 52 ou 53 semaine entieres 364 ou 371 jours"""
         
-#         """
-#         7/7/17 : BUG 
-#         FAIL: test_numeroSemaine5janvier2009 (__main__.TestContainer)
-#         ----------------------------------------------------------------------
-#         Traceback (most recent call last):
-#           File "C:\Users\Utilisateur\git\python_planning\pkg_date_heure\test_math_numero_semaine2.py", line 20, in test_repetitif_NumeroSemaine
-#         self.assertEqual(ladate.numerosemaine(), num_attendu,description)
-#         AssertionError: 1.0 != 2 : numeroSemaine5janvier2009"""
+        #         """
+        #         7/7/17 : BUG 
+        #         FAIL: test_numeroSemaine5janvier2009 (__main__.TestContainer)
+        #         ----------------------------------------------------------------------
+        #         Traceback (most recent call last):
+        #           File "C:\Users\Utilisateur\git\python_planning\pkg_date_heure\test_math_numero_semaine2.py", line 20, in test_repetitif_NumeroSemaine
+        #         self.assertEqual(ladate.numerosemaine(), num_attendu,description)
+        #         AssertionError: 1.0 != 2 : numeroSemaine5janvier2009"""
         self.setObjetCalculJour(objetCalculJour=CalculJourLundiADimanche)
         qj1sn = self.quantieme - self.numerojour
         premier_jan = Date(self.a, 1, 1)
@@ -137,13 +137,59 @@ class Date(object):
             
         n = (qj1sn - qj1s1) / 7   + 1
         return n
+    
+    def calc_qj1s1(self, annee = self.a):
+        premier_jan = Date(annee, 1, 1)
+        
+        tmp = 1 - premier_jan.numerojour
+        if tmp % 7 > 4:
+            qj1s1 = tmp
+        else: 
+            qj1s1 = tmp % 7
+        return qj1s1
 
     def jourdatepremierjanvier(self):
         annee_premier_jan = self.date.year
         premier_jan = Date(annee_premier_jan,1,1)
         return premier_jan.nomjour
     
+    def anneeiso(self):
+        """annee sauf dans les cas limites:
+        - date > 31 dec et < 1er jour année iso suivante alors  anneeiso = annee - 1
+        - date < 31 dec et > 1er jour annee iso suivante alors anneeiso = annee + 1
+        prendre annee si mois = tout sauf janvier et décembre
+        pour décembre, si date > date_1er_jour_anneeisosuivante alors annee + 1 sinon annee
+        pour janvier, si date < date_1er_jour_anneeiso alors annee - 1"""
+        if self.a in [1,12]:
+            if self.m == 1:
+                if self.date < self.datepremierjouranneeiso(self.a):
+                    return self.a - 1
+                else:
+                    return self.a
+            else:
+                if self.m == 12:
+                    if self.date > self.datepremierjouranneeiso(self.a + 1):
+                        return self.a + 1
+                    else:
+                        return self.a
+                else: 
+                    raise ValueError("le mois vaut forcémetn 1 ou 12 dans cette partie de code")
+        else:
+            return self.a
         
+    def datepremierjouranneeiso(self, annee=self.a):
+        """        * reste à déterminer le quantieme du début de la s1 "qj1s1":
+        7 cas:
+         - decl 3 qj1s1 = 4 si 1er janvier est un vendredi (1 - jsem1erJan 4) = -3 %7 = +4
+         - decl 2 qj1hs1 = 3 si 1er janvier est un samedi (1 - jsem1erjan? 5) = -4 %7 = +3
+         - decl 1 qj1s1 = 2 si 1er janvier est un dimanche (1 - jsem1erJan? 6) = -5 M%7 = +2
+         - decl 0 qj1s1 = 1 si 1er janvier est un lundi. ben (1 - jsem1erJan)
+         - decl -1 qj1s1 = 0 si 1er janvier est un mardi donc lundi 31 décembre (1 - jsem1erJan )
+         - decl -2 qj1s1 = - 1 si 1er janvier est un mercredi donc lundi 30 déc (1 - jsem1erJan)
+         - decl -3 qj1s1 = -2 si 1er janvier est un jeudi donc lundi 29 déc (1 - jsemjan)
+         si date_1er_j_iso = date 1er jan + decl jours 
+         """
+        pass
         
 
 

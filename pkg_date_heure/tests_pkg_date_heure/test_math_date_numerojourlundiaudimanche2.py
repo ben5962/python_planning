@@ -43,9 +43,9 @@ def make_test_function(numero_jour_attendu, a,m,j,description):
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     testEchantillons = {
-        'numeroJour1erJanvier2009': [3,2009,1,1],
-        'numeroJour4janvier2009' : [6,2009,1,4],
-        'numeroJour5janvier2009' : [0,2009,1,5],
+        'numeroJour1erJanvier2009': [calendar.THURSDAY,2009,1,1],
+        'numeroJour4janvier2009' : [calendar.SUNDAY,2009,1,4],
+        'numeroJour5janvier2009' : [calendar.MONDAY,2009,1,5],
         'numeroJourlundi3juillet2017': [calendar.MONDAY, 2017,7,3],
         'numeroJourmardi1erjanvier2008': [calendar.TUESDAY, 2008,1,1],
         'numeroJourJeudi1erJanvier2009': [calendar.THURSDAY, 2009, 1, 1],
