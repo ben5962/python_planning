@@ -1,9 +1,11 @@
 eclipse.preferences.version=1
 encoding//pkg_date_heure/math_date.py=utf-8
+encoding//pkg_python_planning/db.py=utf8
 encoding/auditeur.py=utf8
 encoding/boss.py=utf8
 encoding/db.py=utf8
 encoding/demo_odfpy_mashupguide.py=utf-8
+encoding/essai_gen_db.py=utf-8
 encoding/essai_odfpy_wrapper.py=utf-8
 encoding/essai_secretaire.py=utf-8
 encoding/main.py=utf8

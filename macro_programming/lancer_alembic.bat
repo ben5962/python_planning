@@ -1,0 +1,2 @@
+alembic init alembic
+pause

@@ -50,6 +50,7 @@ def run():
             continue
         if ETAT == 'DONNEES_EXISTENT':
             print(ETAT)
+            
             ETAT = 'PRET_POUR_RAPPORT'
             continue
         if ETAT == 'DONNEES_EXISTENT_PAS':
