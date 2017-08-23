@@ -70,7 +70,8 @@ pour l isntrant print. peut etre TODO logger.log"""
         """met un objet rapport odf dansl e contexte commun
         - parce  que plus pratique à manipuler"""
         if self.getTypeSortie() == 'odf':
-            self.Rapport = odfpy_wrapper.Rapport(self.getNomFichierDestination())
+            pass
+            #self.Rapport = odfpy_wrapper.Rapport(self.getNomFichierDestination())
         if self.getTypeSortie() == 'text':
             pass # trouver une representation arborescente à la con
 
@@ -113,8 +114,8 @@ pour l isntrant print. peut etre TODO logger.log"""
         # liste_annees = bdd.getListeAnneesDispo() # pour patron, ca.
         self.setTypeSortie('odf')
         self.setObjetRapport()
-        for NomTache in getBdd().iterNomTache(): 
-            t = self.getBdd().creerTypeTacheParNom(Nomtache, self.getTypeSortie(),self.getObjetRapport(), self.getAnnee()).ajouterAuRapport()
+        for NomTache in self.getBdd().iterNomTache(): 
+            t = self.getBdd().creerTypeTacheParNom(NomTache, self.getTypeSortie(),self.getObjetRapport(), self.getAnnee()).ajouterAuRapport()
         
             
         self._deleguer_travail_verif()
