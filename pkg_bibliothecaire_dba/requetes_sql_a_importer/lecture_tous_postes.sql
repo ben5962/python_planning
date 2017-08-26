@@ -1,0 +1,1 @@
+SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]', nom_poste, categorie_poste from planning

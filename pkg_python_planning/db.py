@@ -660,9 +660,9 @@ en comparant la table speciale sqlite a une table custom de meme forme
 stockant les noms de tables, leurs noms et types de champs et
 leurs contraintes"""
         log.debug("verif si schemas db existe et conforme")
-        ListeTables = self.getCnx().execute(self.getBibliothecaireDba()
-                                .getRequeteMetaByName('non_vide_si_table_planning_existe')[0],
-                                            self.getBibliothecaireDba().getRequeteMetaByName('non_vide_si_table_planning_existe')[1]).fetchall()
+        ListeTables = self.getCnx().execute(
+            self.getBibliothecaireDba().getRequeteMetaByName('non_vide_si_table_planning_existe').fetchall()
+            )
         return ListeTables
     
     def isSqlite3(self,filename):
@@ -890,13 +890,17 @@ class bibliothecaire_dba (object):
             
         def setDicoRequetes (self):
             nom_table_liste_postes = self.getNomTablePlanning()
-            self.dicorequetes = {}
+            def initialiser_structure_dico_requetes():
+                self.dicorequetes = {}
+                self.dicorequetes.setdefault('agregation', {})
+                self.dicorequetes.setdefault('lecture', {})
+                self.dicorequetes.setdefault('ecriture', {})
+                self.dicorequetes.setdefault('meta', {})
+                self.dicorequetes.setdefault('crea', {})
+                
+            initialiser_structure_dico_requetes()
             # les clefs existant pas provoquent des KeyErrors
-            self.dicorequetes.setdefault('agregation', {})
-            self.dicorequetes.setdefault('lecture', {})
-            self.dicorequetes.setdefault('ecriture', {})
-            self.dicorequetes.setdefault('meta', {})
-            self.dicorequetes.setdefault('crea', {})
+
 
             self.dicorequetes['meta'].setdefault('nom_des_tables',
                                                  '''
@@ -908,9 +912,9 @@ class bibliothecaire_dba (object):
                                                 ;
                                                 ''')
             self.dicorequetes['meta'].setdefault('non_vide_si_table_planning_existe',
-                                                 ("SELECT name from sqlite_master where type='table' and name = ?",
-                                                  (nom_table_liste_postes,)
-                                                  )
+                                                 """SELECT name from sqlite_master where type='table' and name = 'planning';"""
+                                                
+                                                  
                                                  )
             self.dicorequetes['meta'].setdefault('nombre_postes_saisis',
                                                        "SELECT COUNT(*) FROM "
@@ -988,9 +992,9 @@ class bibliothecaire_dba (object):
                                                      + nom_table_liste_postes
                                                     )
             self.dicorequetes['lecture'].setdefault('postes_debutes_ou_termines_ou_les_deux_dans_annee',
-                                                    ("""SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]' from """
-                                                     + nom_table_liste_postes
-                                                     + """WHERE  d > ?  AND f <= ?""", "" )
+                                                    """SELECT debut_poste as 'd [timestamp]', fin_poste as 'f [timestamp]' 
+                                                    from planning 
+                                                    WHERE  d > ?  AND f <= ?"""
                                                     )
             self.dicorequetes['lecture'].setdefault('astuce_noms_colonnes',
                                                     '''
@@ -1294,7 +1298,7 @@ WHERE
 	; """
             self.dicorequetes['crea'].setdefault('creer_tables',
                                                  '''CREATE TABLE {} (
-                                                     idx_planning NOT NULL INTEGER PRIMARY KEY,
+                                                     idx_planning INTEGER NOT NULL PRIMARY KEY,
                                                     debut_poste TEXT,
                                                     fin_poste TEXT,
                                                     nom_poste TEXT,
@@ -1306,7 +1310,7 @@ WHERE
 
             self.dicorequetes['crea'].setdefault('creer_tables_datetimeexperimentalsqlite3',
                                                  '''CREATE TABLE {}(
-                                                        idx_planning NOT NULL INTEGER PRIMARY KEY,
+                                                        idx_planning INTEGER NOT NULL PRIMARY KEY,
                                                         debut_poste timestamp,
                                                         fin_poste timestamp,
                                                         nom_poste TEXT,

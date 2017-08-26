@@ -28,7 +28,7 @@ def exporter_dico_dans_fichier_sql(entete_nom_fichier,partie_principale_nom_fich
         chemin_repertoire = os.path.join(os.path.dirname(__file__), nom_rel_rep_dest)
         try: 
             chemin_fichier_complet = os.path.join(chemin_repertoire, nom_fichier)
-            with open(chemin_fichier_complet, 'w') as f:
+            with open(chemin_fichier_complet, 'w', encoding='utf8') as f:
             #with p.open(nom_fichier, mode='w', encoding='utf8') as f:
                 f.write(contenu_fichier)
         except TypeError:

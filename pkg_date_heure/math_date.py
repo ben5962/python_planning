@@ -16,17 +16,44 @@ locale.setlocale(locale.LC_ALL, '')
 
 
 
+
 from pkg_date_heure.pkg_Calculer_jour.calcul_jour_dimanche_a_lundi import CalculJourDimancheALundi
 from pkg_date_heure.pkg_Calculer_jour.calcul_jour_lundi_a_dimanche import CalculJourLundiADimanche
 
-
+def Quantieme(unedate):
+    try:
+        variable_temoin = unedate.year
+        liste_noms_mois = list(calendar.month_name)
+        duree = [0, 31, 28, 31, 30, 31,30, 31, 31, 30, 31, 30, 31]
+        if calendar.isleap(unedate.year):
+            duree[liste_noms_mois.index('février')] = 29
+        q = unedate.day
+        index_mois_debut = liste_noms_mois.index('janvier')
+        index_mois = index_mois_debut
+        while index_mois < unedate.month:
+            q = q + duree[index_mois]
+            index_mois = index_mois + 1
+        return q
+    except AttributeError:
+        print("quantieme prend une date")
+        raise AttributeError
 
 class Date(object):
-    def __init__(self,a,m,j):
-        self.date = creedate(a,m,j)
-        self.j = j
-        self.m = m
-        self.a = a
+    def __init__(self,a=None,m=None,j=None,ladate=None):
+        if (a is not None) and (m is not None) and (j is not None):
+            self.date = creedate(a,m,j)
+            self.j = j
+            self.m = m
+            self.a = a
+        else:
+            if (a is None) or (m is None) or (j is None) and ladate is not None:
+                self.date = ladate
+                self.j = int(self.date.strftime('%d'))
+                self.m = int(self.date.strftime('%m'))
+                self.a = int(self.date.strftime('%Y'))
+            else:
+                raise ValueError("soit une date soit un triplet a m j")
+        
         self.setObjetCalculJour()
 
 
@@ -125,6 +152,22 @@ class Date(object):
         #           File "C:\Users\Utilisateur\git\python_planning\pkg_date_heure\test_math_numero_semaine2.py", line 20, in test_repetitif_NumeroSemaine
         #         self.assertEqual(ladate.numerosemaine(), num_attendu,description)
         #         AssertionError: 1.0 != 2 : numeroSemaine5janvier2009"""
+        
+        
+        # bug : 22 juillet 2017
+        #         ======================================================================
+        # FAIL: test_numeroSemaine1janvier2017 (__main__.TestContainer)
+        # ----------------------------------------------------------------------
+        # Traceback (most recent call last):
+        #   File "C:\Users\Utilisateur\git\python_planning\pkg_date_heure\tests_pkg_date_heure\test_math_numero_semaine2.py", line 20, in test_repetitif_NumeroSemaine
+        #     self.assertEqual(ladate.numerosemaine(), num_attendu,description)
+        # AssertionError: 0.0 != 52 : numeroSemaine1janvier2017
+        # 
+        # ----------------------------------------------------------------------
+        # Ran 4 tests in 0.013s
+        # 
+        # FAILED (failures=1)
+
         self.setObjetCalculJour(objetCalculJour=CalculJourLundiADimanche)
         qj1sn = self.quantieme - self.numerojour
         premier_jan = Date(self.a, 1, 1)
@@ -136,9 +179,24 @@ class Date(object):
             qj1s1 = tmp % 7
             
         n = (qj1sn - qj1s1) / 7   + 1
-        return n
+        if n < 1:
+            quantieme = Quantieme(datetime.date(self.a - 1, 12, 31)) + self.quantieme
+            qj1sn = quantieme - self.numerojour
+            premier_jan = Date(self.a - 1, 1, 1)
+            tmp = 1 - premier_jan.numerojour
+            if tmp % 7 > 4:
+                qj1s1 = tmp
+            else: 
+                qj1s1 = tmp % 7
+            
+                n = (qj1sn - qj1s1) / 7   + 1
+            return int(n)
+        else:
+            return int(n)
     
-    def calc_qj1s1(self, annee = self.a):
+    def calc_qj1s1(self, annee = None):
+        if annee is None:
+            annee = self.a
         premier_jan = Date(annee, 1, 1)
         
         tmp = 1 - premier_jan.numerojour
@@ -146,7 +204,7 @@ class Date(object):
             qj1s1 = tmp
         else: 
             qj1s1 = tmp % 7
-        return qj1s1
+        return int(qj1s1)
 
     def jourdatepremierjanvier(self):
         annee_premier_jan = self.date.year
@@ -177,7 +235,7 @@ class Date(object):
         else:
             return self.a
         
-    def datepremierjouranneeiso(self, annee=self.a):
+    def datepremierjouranneeiso(self, annee=None):
         """        * reste à déterminer le quantieme du début de la s1 "qj1s1":
         7 cas:
          - decl 3 qj1s1 = 4 si 1er janvier est un vendredi (1 - jsem1erJan 4) = -3 %7 = +4
@@ -192,5 +250,11 @@ class Date(object):
         pass
         
 
+
+def isoweek(d):
+    return int(Date(ladate=d).numerosemaine())
+
+def isoyear(d):
+    return int(Date(ladate=d).anneeiso())
 
 

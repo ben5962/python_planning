@@ -1,0 +1,6 @@
+SELECT 
+                                                     COUNT(*)
+                                                    FROM
+                                                        <TABLE>
+                                                    ;
+                                                 

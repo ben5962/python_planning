@@ -33,7 +33,9 @@ if __name__ == "__main__":
     testEchantillons = {
         'numeroSemaine1erJanvier2009': [1,2009,1,1],
         'numeroSemaine4janvier2009' : [1,2009,1,4],
-        'numeroSemaine5janvier2009' : [2,2009,1,5]
+        'numeroSemaine5janvier2009' : [2,2009,1,5],
+        'numeroSemaine1janvier2017' : [52, 2017,1,1],
+        'numeroSemaine1janvier2016' : [53, 2016, 1,1]
         }
     for name, params in iter(testEchantillons.items()):
         test_func = make_test_function(params[0], params[1], params[2], params[3],name)

@@ -16,7 +16,7 @@ class Test(unittest.TestCase):
     pass
 
 
-def     cree_fonctiondetest(description, date_sqlite, semaine_iso_sqlite, semaine_iso_python):
+def cree_fonctiondetest(description, date_sqlite, semaine_iso_sqlite, semaine_iso_python):
     def teste_valeur(self):
         """vrai si le numero de semaine iso calculé par sqlite est le même que celui
         généré par math_date.Date().numero_semaine """

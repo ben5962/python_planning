@@ -4,13 +4,36 @@
 
 #import auditeur
 #import boss
+from transitions import Machine
 from db import realdb
 from db import bdd
 from secretaire import Secretaire
 import db
 import une_passe
 
+class Avancee(object):
+    pass
 
+oueneston = Avancee()
+states = ['DEPART', 'FIN', 
+          'FIN_ERREUR_DONNEES_MAL_PRODUITES_EXISTENT_PAS',
+          'FIN_ERREUR_SCHEMAS_MAL_PRODUIT',
+          'DB_EXISTE','DB_EXISTE_PAS','SCHEMAS_EXISTE','SCHEMAS_EXISTE_PAS',
+          'DONNEES_EXISTENT','DONNEES_EXISTENT_PAS','PRET_POUR_RAPPORT',
+          'DONNEES_EXCEL_EXPERT_EXISTENT','DONNEES_EXCEL_EXPERT_EXISTENT_PAS',
+          'FIN_SOUS_ETAT_ERREUR_ECHEC_PRODUC_DONNEES_EXCEL_EXPERT',
+          'PRODUIRE_TABLEAU_EXCEL_HEURES_SUP',
+          'PRODUIRE_TABLEAU_EXCEL_CP_CHEVAUCHE_TRAVAIL',
+          'PRODUIRE_TABLEAU_EXCEL_REPOS_WEEK_ENDS',
+          'PRODUIRE_TABLEAU_EXCEL_SEMAINE_PLUS_DE_48',
+          'PRODUIRE_TABLEAU_EXCEL_10PCT_NUITSEMSAM_DIMJOUR',
+          'PRODUIRE_TABLEAU_EXCEL_20PCT_DIMNUIT'
+          ]
+#https://github.com/pytransitions/transitions#basic-initialization
+
+transitions = #TODO : continuer
+machine = Machine(model=oueneston, states=states, transitions=transitions, initial='DEPART')
+    
 def run():
     ETAT = 'DEPART'
     ETATS_FIN = ['FIN', 'FIN_ERREUR_DONNEES_MAL_PRODUITES_EXISTENT_PAS','FIN_ERREUR_SCHEMAS_MAL_PRODUIT']

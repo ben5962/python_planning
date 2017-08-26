@@ -1,0 +1,1 @@
+INSERT OR IGNORE INTO planning (debut_poste, fin_poste, nom_poste, categorie_poste) VALUES (?, ?, ?, ?)

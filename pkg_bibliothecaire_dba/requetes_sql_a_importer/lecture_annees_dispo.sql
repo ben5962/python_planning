@@ -1,0 +1,1 @@
+SELECT DISTINCT strftime("%Y",debut_poste) from planning

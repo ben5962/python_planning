@@ -7,7 +7,7 @@ Create Date: 2017-07-19 22:47:04.906631
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy import create_engine, Column, Integer, Numeric, String
+from sqlalchemy import (create_engine, Column, Integer, Numeric, String)
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -21,10 +21,13 @@ depends_on = None
 
 
 def upgrade():
-    batch_op = op.batch_alter_table("planning")
-    #with op.batch_alter_table("planning") as batch_op:
-    
-    batch_op.batch_create_primary_key("planning_idx", "planning", ['debut_poste', 'fin_poste'])
+    #batch_op = op.batch_alter_table("planning")
+    with op.batch_alter_table("planning") as batch_op:
+        if ('Column' in dir()):
+            batch_op.add_column(Column('idx_planning', Integer,primary_key=True, autoincrement="auto"))
+        else:
+            raise ImportError("vérifier espace de nom: Column pas visible depuis ".___file___)
+        #batch_op.batch_create_primary_key("planning_idx", "planning", ['debut_poste', 'fin_poste'])
         
 
 
