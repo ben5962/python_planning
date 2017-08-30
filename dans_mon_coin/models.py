@@ -89,5 +89,5 @@ def choisir_documents_pertinents(*args, **kwargs):
 
 
 
-print(session.query(Documents).all())       
+#print(session.query(Documents).all())       
 
