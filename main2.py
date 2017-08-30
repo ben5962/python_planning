@@ -31,8 +31,8 @@ states = ['DEPART', 'FIN',
           ]
 #https://github.com/pytransitions/transitions#basic-initialization
 
-transitions = #TODO : continuer
-machine = Machine(model=oueneston, states=states, transitions=transitions, initial='DEPART')
+#transitions = "todo"#TODO : continuer
+#machine = Machine(model=oueneston, states=states, transitions=transitions, initial='DEPART')
     
 def run():
     ETAT = 'DEPART'

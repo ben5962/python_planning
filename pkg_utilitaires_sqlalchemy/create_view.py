@@ -63,7 +63,7 @@ if __name__ == '__main__':
     
     autre_vue = view("autre_vue", metadata,
                      select ([s.id, (s.id * 2 ).label('dble')])
-                     select ([stuff_view.c.id.label('id') ]) as s
+                     select ([stuff_view.c.id.label('id') as s])
                      )
 
     # the ORM would appreciate this
