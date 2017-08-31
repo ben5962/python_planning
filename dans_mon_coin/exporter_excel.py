@@ -30,11 +30,9 @@ def sauver_excel():
     p.save_as(session=models.session,
 	  dest_file_name="essai_export_excel.xls",
 	  dest_sheet_name="destination",
-	  table=models.session.query(models.Documents).filter(models.Documents.documents_id == 1)
+	  table=models.session.query(models.Documents).filter(models.Documents.documents_id == 1).all()
 	  )
-    # errors: 56, in __repr__
-    # "fin_periode_couverte = {self.fin_periode_couverte}".format(self=self)
-    #AttributeError: 'Documents' object has no attribute 'debut_periode_couverte' PB_models
+
     q = models.session.query(models.Documents).filter(models.Documents.documents_id==1).all()
 
 
