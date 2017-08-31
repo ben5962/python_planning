@@ -52,8 +52,8 @@ class Documents(Base):
                  "titre_document = {self.titre_document}, "\
                  "type_document = {self.type_document}, "\
                  "origine ={self.origine},"\
-                 "debut_periode_couverte = {self.debut_periode_couverte},"\
-                 "fin_periode_couverte = {self.fin_periode_couverte}".format(self=self)
+                 "debut_periode_couverte = {self.date_debut_periode_couverte},"\
+                 "fin_periode_couverte = {self.date_fin_periode_couverte}".format(self=self)
         return chaine
 
 engine = create_engine('sqlite:///:memory:')
