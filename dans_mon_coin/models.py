@@ -55,7 +55,19 @@ class Documents(Base):
                  "debut_periode_couverte = {self.date_debut_periode_couverte},"\
                  "fin_periode_couverte = {self.date_fin_periode_couverte}".format(self=self)
         return chaine
-
+    
+class SourceDocumentairePertinente(Base):
+    __tablename__ = 'SourceDocumentairePertinente'
+    source_pertinente_id = Column(Integer(), primary_key=True)
+    date_document = Column(Date(), nullable=False)
+    titre_document= Column(String(100), nullable = False)
+    type_document = Column(String(2), nullable = False)
+    origine = Column(String(150), nullable = False)
+    date_debut_periode_couverte = Column(Date())
+    horo_debut_periode_couverte = Column(DateTime())
+    date_fin_periode_couverte = Column(Date())
+    remarques = Column(String(150))
+    
 engine = create_engine('sqlite:///:memory:')
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
@@ -83,7 +95,11 @@ def insert_initial_values(*args, **kwargs):
 
 insert_initial_values()
 
+def inserer_documents_pertinents_apres_sophie(*args, **kwargs):
+    pass
+
 def choisir_documents_pertinents(*args, **kwargs):
+    """ ceux dans avant sophie et apres sophie"""
     pass
 
 
