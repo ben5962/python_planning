@@ -3,7 +3,10 @@
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_INTERPRETER">python36</pydev_property>
 <pydev_property name="org.python.pydev.PYTHON_PROJECT_VERSION">python 3.6</pydev_property>
 <pydev_pathproperty name="org.python.pydev.PROJECT_SOURCE_PATH">
-<path>/${PROJECT_DIR_NAME}</path>
+<path>/git_python_planning</path>
+<path>/git_python_planning/essai_spiffwork</path>
+<path>/git_python_planning/mails_plannings</path>
+<path>/${PROJECT_DIR_NAME}/GitHub</path>
 </pydev_pathproperty>
 <pydev_property name="org.python.pydev.PYTHON_ADDITIONAL_GRAMMAR_VALIDATION">3.6</pydev_property>
 </pydev_project>

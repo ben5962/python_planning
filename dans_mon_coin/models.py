@@ -6,13 +6,25 @@ Created on 29 août 2017
 
 
 
-
+from pathlib import Path
 import csv
 from dateutil.parser import *
 
+#imports de cochon
+import sys
+chemin_mail = Path(r'C:\Users\Utilisateur\Documents\GitHub\parse_email').resolve()
+chemin_imports_de_cochon = Path(r'C:\Users\Utilisateur\Documents\GitHub\import_de_cochon').resolve()
+chemin_pdf = Path(r'C:\Users\Utilisateur\Documents\GitHub\parse_pdf').resolve()
+for chemin in [chemin_mail, chemin_imports_de_cochon, chemin_pdf]:
+    sys.path.append(str(chemin))
+#go!
+from module_objet_pdf import Objet_pdf
+from module_objet_mail import Objet_mail
 
 
-from sqlalchemy import Table, Column, Integer, Numeric, String, Date, Boolean, DateTime
+
+
+from sqlalchemy import Table, Column, Integer, Numeric, String, Date, Boolean, DateTime, BLOB
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -29,7 +41,18 @@ def print_dbg(msg):
     if dbg:
         print(msg)
 
-        
+class Emails(Base): 
+    __tablename__ = 'Emails'
+    email_id = Column(Integer(), primary_key=True)
+    fichier_email = Column(BLOB(), nullable=False)
+    nom_fichier_mail = Column(String(), nullable=False)
+    date_objet_mail = Column(Date(),nullable=False)
+    def __repr__(self):
+        return "Emails(email_id={self.email_id}, "\
+            "nom_fichier_mail={self.nom_fichier_mail} ,"\
+            "date_objet_mail={self.date_objet_mail})".format(self=self)
+    
+           
 class Documents(Base):
     __tablename__ = 'Documents'
     documents_id = Column(Integer(), primary_key=True)
@@ -93,7 +116,7 @@ def insert_initial_values(*args, **kwargs):
         session.flush()
 
 
-insert_initial_values()
+#insert_initial_values()
 
 def inserer_documents_pertinents_apres_sophie(*args, **kwargs):
     pass
@@ -103,7 +126,25 @@ def choisir_documents_pertinents(*args, **kwargs):
     pass
 
 
+def insert_mails(*args, **kwargs):
+    chemin_fichiers_mails = Path(r'C:\Users\Utilisateur\Documents\GitHub\mails_plannings\pertinent normalisé').resolve().glob('*.eml')
+    
+    for fichier in chemin_fichiers_mails:
+        m = Objet_mail(str(fichier))
+        with open(str(fichier),'rb') as f:
+            session.add(
+                Emails(
+                    fichier_email=f.read(),
+                    nom_fichier_mail=fichier.name,
+                    date_objet_mail = m.getDate()
+                    
+                    )
+                        )
 
+def lire_mails(*args, **kwargs):
+    pass
+    
 
 #print(session.query(Documents).all())       
-
+insert_mails()
+print(session.query(Emails).all())

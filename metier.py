@@ -184,6 +184,19 @@ class semaineCalendaire(object):
             date_en_francais(bornes[1])
             ])
         return ch
+def getNumeroMoisFromChaineMerdiqueEnFrancais(chaine):
+    """Jan. 16 -> 1 decembre > 12 etc... """
+    import locale
+    locale.setlocale(locale.LC_ALL,'fra')
+    import calendar    
+    import re
+    # heuristique: prendre les 3 premieres lettres du nom de mois localisé
+    # faire recherche insensible à la casse
+    print("getNumeroMoisFromChaineMerdiqueEnFrancais: ai recu {} comme arg".format(chaine))
+    #les mois en francais
+    intervalle_mois = list(range(1,13))
+    nom_mois = [calendar.monthname[Date(2017,mois,1).month] for mois in intervalle_mois]
+    return nom_mois
 
 def date_en_francais(la_date):
     """convertit une datetime en chaine en francais"""
