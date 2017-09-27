@@ -11,6 +11,7 @@ import csv
 from dateutil.parser import *
 
 import logging
+
 FORMAT = "[%(filename)s:%(lineno)s - %(funcName)20s() ] %(message)s"
 logging.basicConfig(level=logging.DEBUG, format=FORMAT)
 logger = logging.getLogger(__name__)
@@ -162,6 +163,7 @@ def insert_mails(*args, **kwargs):
                     )
                         )
     session.flush()
+    session.commit()
     logger.debug('insert_mails : flush effectue. les donnees devraient persister')
     logger.info('insertion de {} enregistrements'.format(session.query(Emails).count()))
             
@@ -169,7 +171,7 @@ def insert_mails(*args, **kwargs):
 def lire_mails(*args, **kwargs):
     pass
     
-def insert_attachments(*args, **kwargs):
+def insert_attachments(*args, reprise=None, **kwargs):
     try:
         if not session:
             raise ValueError('la session n existe pas')
@@ -185,26 +187,55 @@ def insert_attachments(*args, **kwargs):
     
     logger.debug('la session exise et il y a plus de 10 mails en base. on peut chch les pj')
     logger.debug('il y a {} messages comportant des pieces jointes'.format(session.query(Emails).filter(Emails.nb_pj > 0).count()))
+    if reprise:
+        logger.debug("le champ reprise est non vide, je vais sauter les parties e boucles jusque {}".format(reprise))
+        skip=True
     for Objet_mailSqlAlchemy in session.query(Emails).filter(Emails.nb_pj > 0):
         m = Objet_mail(Objet_mailSqlAlchemy.chemin_fichier_mail)
-        #TODO:creer un rep nom_mail prive de eml
-        for pj in m.getAllAttachments():
-            logger.debug('entree ds attachment: {}'.format(pj.nom_fichier_attachment))
-            
-#             logger.debug('je cree un repertoire nomme {}'.format(Path(ml.chemin_fichier_mail).stem))
-#             Path(
-#                 Path(ml.chemin_fichier_mail).stem
-#                 ).mkdir(exist_ok=True)
-            logger.debug('j ajoute les champs necessaire dans la base')
-            session.add(Attachments(
-                fichier_attachment = pj.getRawData(),
-                nom_fichier_attachment = pj.getFileName(),
-                type_attachment = pj.getFileType(),
-                nb_pages = pj.getParser(pj.getFileType()).parse(pj.getRawData()).getNumberOfPages(),
-                emails_id = Objet_mailSqlAlchemy.id
-                ))
+        if skip == True:
+            logger.debug("entree ans banche skip true")
+            if m.getNormalizedName() == reprise:
+                skip = False
+                logger.debug("STOP SKIP : le mail est {} tout comme notre nom de fichier {}. on cesse le skip".format(m.getNormalizedName(),reprise))
+                continue
+            else:
+                logger.debug("SKIP : le mail est {} alors que notre nom de fichier {}".format(m.getNormalizedName(),reprise))
+                continue
+        else:
+            #TODO:creer un rep nom_mail prive de eml
+            for pj in m.getAllAttachments():
+                logger.debug('entree ds attachment: {}'.format(pj.getFileName()))
+                
+    #             logger.debug('je cree un repertoire nomme {}'.format(Path(ml.chemin_fichier_mail).stem))
+    #             Path(
+    #                 Path(ml.chemin_fichier_mail).stem
+    #                 ).mkdir(exist_ok=True)
+                
+                try:
+                    #nb_pages est un test d extraction de donnees.
+                    # il doit fonctionner pour que l on ajoute d autres elements
+                    import PyPDF2
+                    objet_parser = pj.getParser(pj.getFileType())
+                    objet_parser_nb_pages = objet_parser.getNumberOfPages()
+                except PyPDF2.utils.PdfReadError as u:
+                    logger.error(u.args)
+                    logger.error("l erreur de type de fichier de veronique. passons à la suite")
+                    continue
+                    
+                logger.debug('j ajoute les champs necessaire dans la base')
+                session.add(Attachments(
+                    fichier_attachment = pj.getRawData(),
+                    nom_fichier_attachment = pj.getFileName(),
+                    type_attachment = pj.getFileType(),
+                    nb_pages = objet_parser_nb_pages,
+                    #nb_pages = pj.getParser(pj.getFileType()).parse(pj.getRawData()).getNumberOfPages(),
+                    emails_id = Objet_mailSqlAlchemy.email_id
+                    ))
+                session.flush()
+                session.commit()
+    logger.debug("fin de insert_attachments")
         
 #print(session.query(Documents).all())       
-insert_mails()
+#insert_mails()
 #print("{} mails ont 0 pj".format(session.query(Emails).all()))
-insert_attachments()
+insert_attachments(reprise="2016-04-28 10_46_17+02_00PLANNING PC MAI 2016 Modifiéveronique.willem@domoveil.frhas 1 pj2016 MAI.odg.eml")
