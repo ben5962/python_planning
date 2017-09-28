@@ -192,15 +192,17 @@ def insert_attachments(*args, reprise=None, **kwargs):
         skip=True
     for Objet_mailSqlAlchemy in session.query(Emails).filter(Emails.nb_pj > 0):
         m = Objet_mail(Objet_mailSqlAlchemy.chemin_fichier_mail)
+        ########################################################
+        # pouvoir sauter une partie de la boucle pour des raisons de mise au point
+        if skip == True and m.getNormalizedName() == reprise:
+            skip = False
+            logger.debug("STOP SKIP : le mail est {} tout comme notre nom de fichier {}. on cesse le skip".format(m.getNormalizedName(),reprise))
         if skip == True:
             logger.debug("entree ans banche skip true")
-            if m.getNormalizedName() == reprise:
-                skip = False
-                logger.debug("STOP SKIP : le mail est {} tout comme notre nom de fichier {}. on cesse le skip".format(m.getNormalizedName(),reprise))
-                continue
-            else:
-                logger.debug("SKIP : le mail est {} alors que notre nom de fichier {}".format(m.getNormalizedName(),reprise))
-                continue
+            logger.debug("SKIP : le mail est {} alors que notre nom de fichier {}".format(m.getNormalizedName(),reprise))
+            #le skip,  c est un continue
+            continue
+        ##########################################################
         else:
             #TODO:creer un rep nom_mail prive de eml
             for pj in m.getAllAttachments():
